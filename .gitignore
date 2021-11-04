@@ -1,0 +1,6 @@
+*.class
+java.policy
+RMIInterface.jar
+.DS_Store
+.idea
+distributed-systems-p2.iml
