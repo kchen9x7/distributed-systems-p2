@@ -5,17 +5,30 @@ import Server.Interface.*;
 
 import java.util.*;
 import java.rmi.RemoteException;
-import java.io.*;
 
+import Server.Transactions.*;
+//TODO: Add locking stuff
 public class MiddlewareResourceManager implements IResourceManager
 {
 	protected String m_name = "";
 	protected RMHashMap m_data = new RMHashMap();
 
+	protected TransactionManager transactionManager;
+	protected MiddlewareTransactionHandler middleware_tm;
+	protected MiddlewareResourceManager middleware_rm;
+	private int time_allowed = 60; //default time allowed for a transaction in seconds
+
 	private IResourceManager flightResourceManager = null;
 	private IResourceManager carResourceManager = null;
     private IResourceManager roomResourceManager = null;
 
+	private void setTransactionManager(TransactionManager transactionManager) {
+		this.transactionManager = transactionManager;
+	}
+
+	private void updateAllowedTime(int transactionID){
+		middleware_tm.readActiveTransaction(transactionID).updateLastOperationTime();
+	}
 
 	public MiddlewareResourceManager(String p_name)
 	{
@@ -351,6 +364,152 @@ public class MiddlewareResourceManager implements IResourceManager
 	public String getName() throws RemoteException
 	{
 		return m_name;
+	}
+
+	@Override
+	public void abortTransaction(int transactionID) throws RemoteException {
+		System.out.println("Aborting the transaction with ID: " + transactionID);
+
+		try{
+			checkTransactionID(transactionID);
+		}catch(Exception exp){
+			System.out.println(exp.getLocalizedMessage());
+		}
+
+		if(middleware_tm.ifActiveOnTransactID(transactionID)){
+			Transaction transact = middleware_tm.readActiveTransaction(transactionID);
+
+			Set<String> resources = transact.getUsedRMs();
+
+			if (resources.contains("Flight")){
+				flightResourceManager.abortTransaction(transactionID);
+			}
+			if (resources.contains("Flight")){
+				carResourceManager.abortTransaction(transactionID);
+			}
+			if (resources.contains("Flight")){
+				roomResourceManager.abortTransaction(transactionID);
+			}
+
+			endTransaction(transactionID, false);
+		}else{
+			System.out.println("There is no valid Transaction with the ID " + transactionID);
+			return;
+		}
+	}
+
+	@Override
+	public boolean commitTransaction(int transactionID) throws RemoteException {
+		if(!middleware_tm.ifActiveOnTransactID(transactionID)){
+			System.out.println("There is no valid Transaction with the ID " + transactionID);
+			return false;
+		}else{
+			int id = transactionID;
+			System.out.print("Commit transaction:" + transactionID);
+
+			checkTransactionID(id);
+			Transaction transact = middleware_tm.readActiveTransaction(transactionID);
+
+			Set<String> resources = transact.getUsedRMs();
+
+			Trace.info("Resource=" + resources);
+			if (resources.contains("Flight")){
+				flightResourceManager.commitTransaction(transactionID);
+			}
+			if (resources.contains("Flight")){
+				carResourceManager.commitTransaction(transactionID);
+			}
+			if (resources.contains("Flight")){
+				roomResourceManager.commitTransaction(transactionID);
+			}
+
+			if (resources.contains("Customer")) {
+				RMHashMap map = transact.getTransactData();
+
+				synchronized (m_data) {
+					Set<String> keys = map.keySet();
+					for (String key : keys) {
+						System.out.print("Write:(" + key + "," + map.get(key) + ")");
+						m_data.put(key, map.get(key));
+					}
+				}
+			}
+
+			endTransaction(transactionID, true);
+
+			return true;
+		}
+	}
+
+	@Override
+	public boolean shutdown() throws RemoteException {
+		flightResourceManager.shutdown();
+		carResourceManager.shutdown();
+		roomResourceManager.shutdown();
+
+		new Thread() {
+			@Override
+			public void run() {
+				System.out.print("Shutting down thread...");
+				try {
+					sleep(5000);
+				} catch (InterruptedException e) {
+					System.out.println(e.getLocalizedMessage());
+				}
+				System.out.println("Shutting down completed, goodbye!");
+				System.exit(0);
+			}
+
+		}.start();
+
+		return true;
+	}
+
+	@Override
+	public int start() throws RemoteException {
+		int transactionID  = middleware_tm.start();
+		Trace.info("Starting the transaction with ID: " + transactionID);
+		return transactionID;
+	}
+
+	@Override
+	public void addTransaction(int transactionID) throws RemoteException {
+		Trace.info("MiddlewareResourceManager::addTransaction(" + transactionID + ") called");
+		if (!transactionManager.ifActiveOnTransactID(transactionID)) {
+			Trace.info("Added transaction");
+			transactionManager.writeActiveTransaction(transactionID, new Transaction(transactionID));
+		}
+	}
+
+	private void checkTransactionID(int transactionID) {
+		if(middleware_tm.readActiveTransaction(transactionID) != null){
+			updateAllowedTime(transactionID);
+			return;
+		}
+		Trace.info("ERROR: Transaction is not active!");
+
+		Boolean checkTransactID = middleware_tm.hasPastTransaction(transactionID);
+		if(checkTransactID == null){
+			System.out.println("The transaction with ID: " + transactionID + " doesn't exist!");
+		}else if(checkTransactID == true) {
+			System.out.println("The transaction with ID: " + transactionID + " has already been committed");
+		}else{
+			System.out.println("The transaction with ID: " + transactionID + " has been aborted");
+		}
+	}
+
+
+	private void endTransaction(int transactionID, boolean committed) {
+		// Move to inactive transactions
+		middleware_tm.writeActiveTransaction(transactionID, null);
+		middleware_tm.writePastTransaction(transactionID, committed);
+
+		// TODO: do unlocking here with the transaction id
+	}
+
+	//TODO: Add this under every query with the appropriate parameters
+	public void addResourceManagerUsed(int xid, String resourceName) {
+
 	}
 }
  

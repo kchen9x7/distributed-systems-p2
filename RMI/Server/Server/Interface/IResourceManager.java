@@ -208,4 +208,42 @@ public interface IResourceManager extends Remote
      */
     public String getName()
         throws RemoteException;
+
+    /**
+     * Abort a transaction with the transaction ID
+     *
+     * @return Success
+     */
+    public void abortTransaction(int transactionID)
+        throws RemoteException;
+
+    /**
+     * Start new transaction
+     *
+     * @return new xid
+     */
+    public int start()
+        throws RemoteException;
+
+    /**
+     * Commit a transaction with transactionID
+     *
+     * @return Success
+     */
+    public boolean commitTransaction(int transactionID)
+            throws RemoteException;
+
+    /**
+     * Shutdown
+     *
+     * @return Success
+     */
+    public boolean shutdown()
+            throws RemoteException;
+
+    /**
+     * Add transaction to Middleware ResourceManager's TransactionManager
+     */
+    public void addTransaction(int transactionID) throws RemoteException;
+
 }

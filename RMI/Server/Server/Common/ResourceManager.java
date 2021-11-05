@@ -9,12 +9,14 @@ import Server.Interface.*;
 
 import java.util.*;
 import java.rmi.RemoteException;
-import java.io.*;
+
+import Server.Transactions.TransactionManager;
 
 public class ResourceManager implements IResourceManager
 {
 	protected String m_name = "";
 	protected RMHashMap m_data = new RMHashMap();
+	protected TransactionManager transactionManager;
 
 	public ResourceManager(String p_name)
 	{
@@ -24,7 +26,7 @@ public class ResourceManager implements IResourceManager
 	// Reads a data item
 	protected RMItem readData(int xid, String key)
 	{
-		synchronized(m_data) {
+				synchronized(m_data) {
 			RMItem item = m_data.get(key);
 			if (item != null) {
 				return (RMItem)item.clone();
@@ -384,5 +386,22 @@ public class ResourceManager implements IResourceManager
 	{
 		return m_name;
 	}
+
+	@Override
+	public void abortTransaction(int transactionID) throws RemoteException {}
+
+	@Override
+	public int start() throws RemoteException {
+		return -1;
+	}
+
+	@Override
+	public boolean commitTransaction(int transactionID) throws RemoteException {return false;}
+
+	@Override
+	public boolean shutdown() throws RemoteException {return false;}
+
+	@Override
+	public void addTransaction(int transactionID) throws RemoteException {}
 }
  
