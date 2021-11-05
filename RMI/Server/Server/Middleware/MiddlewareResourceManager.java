@@ -1,56 +1,68 @@
 package Server.Middleware;
 
+import Server.Exception.InvalidTransactionException;
 import Server.Common.*;
+import Server.Exception.TransactionAbortedException;
 import Server.Interface.*;
 
 import java.util.*;
 import java.rmi.RemoteException;
 
-import Server.Transactions.*;
+import Server.LockManager.DeadlockException;
+import Server.LockManager.LockManager;
+import Server.LockManager.TransactionLockObject.LockType;
+import Server.TransactionManager.TransactionManager;
+import Server.Common.Transaction;
+
 //TODO: Add locking stuff
 public class MiddlewareResourceManager implements IResourceManager
 {
 	protected String m_name = "";
 	protected RMHashMap m_data = new RMHashMap();
 
-	protected TransactionManager transactionManager;
-	protected MiddlewareTransactionHandler middleware_tm;
-	protected MiddlewareResourceManager middleware_rm;
-	private int time_allowed = 60; //default time allowed for a transaction in seconds
+	private IRemoteResourceManager flightResourceManager = null;
+	private IRemoteResourceManager carResourceManager = null;
+	private IRemoteResourceManager roomResourceManager = null;
 
-	private IResourceManager flightResourceManager = null;
-	private IResourceManager carResourceManager = null;
-	private IResourceManager roomResourceManager = null;
+	// --- transactions ---
+	private int TTL = 10000; //time to live for a transaction in seconds
+	private TransactionManager transactionManager;
+	private LockManager lockManager;
 
-	private void setTransactionManager(TransactionManager transactionManager) {
+	public MiddlewareResourceManager(String p_name) {
+		this.m_name = p_name;
+		this.lockManager = new LockManager();
+		TransactionManager tm = new TransactionManager(this, this.TTL);
+		setTransactionManager(tm);
+	}
+
+	public void setTransactionManager(TransactionManager transactionManager){
 		this.transactionManager = transactionManager;
 	}
 
-	private void updateAllowedTime(int transactionID){
-		middleware_tm.readActiveTransaction(transactionID).updateLastOperationTime();
-	}
-
-	public MiddlewareResourceManager(String p_name)
-	{
-		m_name = p_name;
-	}
-
-	protected void setFlightResourceManager(IResourceManager flightResourceManager){
+	protected void setFlightResourceManager(IRemoteResourceManager flightResourceManager){
 		this.flightResourceManager = flightResourceManager;
 	}
 
-	protected void setCarResourceManager(IResourceManager carResourceManager){
+	protected void setCarResourceManager(IRemoteResourceManager carResourceManager){
 		this.carResourceManager = carResourceManager;
 	}
 
-	protected void setRoomResourceManager(IResourceManager roomResourceManager){
+	protected void setRoomResourceManager(IRemoteResourceManager roomResourceManager){
 		this.roomResourceManager = roomResourceManager;
 	}
 
-	public boolean addFlight(int xid, int flightNum, int flightSeats, int flightPrice) throws RemoteException
-	{
+	public boolean addFlight(int xid, int flightNum, int flightSeats, int flightPrice)
+			throws RemoteException, InvalidTransactionException, TransactionAbortedException {
 		Trace.info("Request for AddFlight received from Client.");
         Trace.info("Forwarding request to Flight Server...");
+
+        // check if transaction is valid / exists / ongoing
+        isValidTransaction(xid);
+        // request write lock
+        requestLock(xid, LockType.LOCK_WRITE, Flight.getKey(flightNum));
+        // add interacted resource manager to transaction
+        addResourceManager(xid, "Flight");
         if (flightResourceManager.addFlight(xid, flightNum, flightSeats, flightPrice)) {
             Trace.info("Flight server completed request successfully!");
             return true;
@@ -60,8 +72,7 @@ public class MiddlewareResourceManager implements IResourceManager
         }
 	}
 
-	public boolean addCars(int xid, String location, int count, int price) throws RemoteException
-	{
+	public boolean addCars(int xid, String location, int count, int price) throws RemoteException, InvalidTransactionException {
 		Trace.info("Request for AddCars received from Client.");
         Trace.info("Forwarding request to Car Server...");
         if (carResourceManager.addCars(xid, location, count, price)) {
@@ -73,8 +84,7 @@ public class MiddlewareResourceManager implements IResourceManager
         }
 	}
 
-	public boolean addRooms(int xid, String location, int count, int price) throws RemoteException
-	{
+	public boolean addRooms(int xid, String location, int count, int price) throws RemoteException, InvalidTransactionException {
 		Trace.info("Request for AddRooms received from Client.");
         Trace.info("Forwarding request to Room Server...");
         if (roomResourceManager.addRooms(xid, location, count, price)) {
@@ -86,8 +96,7 @@ public class MiddlewareResourceManager implements IResourceManager
         }
 	}
 
-	public int newCustomer(int xid) throws RemoteException
-	{
+	public int newCustomer(int xid) throws RemoteException, InvalidTransactionException {
 		Trace.info("Request for AddRooms received from Client.");
 		Trace.info("Replicating customer information on distributed servers...");
 
@@ -110,8 +119,7 @@ public class MiddlewareResourceManager implements IResourceManager
 		}
 	}
 
-	public boolean newCustomer(int xid, int customerID) throws RemoteException
-	{
+	public boolean newCustomer(int xid, int customerID) throws RemoteException, InvalidTransactionException {
 		Trace.info("Request for AddRooms received from Client.");
 		Trace.info("Replicating customer information on distributed servers...");
 
@@ -170,8 +178,7 @@ public class MiddlewareResourceManager implements IResourceManager
         }
 	}
 
-	public boolean deleteCustomer(int xid, int customerID) throws RemoteException
-	{
+	public boolean deleteCustomer(int xid, int customerID) throws RemoteException, InvalidTransactionException {
 		Trace.info("Request for DeleteCustomer received from Client.");
 		Trace.info("Deleting customer across distributed servers...");
 
@@ -203,9 +210,9 @@ public class MiddlewareResourceManager implements IResourceManager
 	public int queryFlight(int xid, int flightNum) throws RemoteException
 	{
 		Trace.info("Request for QueryFlight received from Client.");
-        Trace.info("Forwarding request to Flight Server...");
+		Trace.info("Forwarding request to Flight Server...");
 		int value = flightResourceManager.queryFlight(xid, flightNum);
-        Trace.info("Flight server response sending back to Client.");
+		Trace.info("Flight server response sending back to Client.");
 		return value;
 	}
 
@@ -289,8 +296,7 @@ public class MiddlewareResourceManager implements IResourceManager
 	}
 
 
-	public boolean reserveFlight(int xid, int customerID, int flightNum) throws RemoteException
-	{
+	public boolean reserveFlight(int xid, int customerID, int flightNum) throws RemoteException, InvalidTransactionException {
 		Trace.info("Request for ReserveFlight received from Client.");
 		Trace.info("Forwarding request to Flight Server...");
 
@@ -304,8 +310,7 @@ public class MiddlewareResourceManager implements IResourceManager
 	}
 
 
-	public boolean reserveCar(int xid, int customerID, String location) throws RemoteException
-	{
+	public boolean reserveCar(int xid, int customerID, String location) throws RemoteException, InvalidTransactionException {
 		Trace.info("Request for ReserveCar received from Client.");
 		Trace.info("Forwarding request to Car Server...");
 
@@ -318,8 +323,7 @@ public class MiddlewareResourceManager implements IResourceManager
 		}
 	}
 
-	public boolean reserveRoom(int xid, int customerID, String location) throws RemoteException
-	{
+	public boolean reserveRoom(int xid, int customerID, String location) throws RemoteException, InvalidTransactionException {
 		Trace.info("Request for ReserveRoom received from Client.");
 		Trace.info("Forwarding request to Room Server...");
 
@@ -332,8 +336,7 @@ public class MiddlewareResourceManager implements IResourceManager
 		}
 	}
 
-	public boolean bundle(int xid, int customerId, Vector<String> flightNumbers, String location, boolean car, boolean room) throws RemoteException
-	{
+	public boolean bundle(int xid, int customerId, Vector<String> flightNumbers, String location, boolean car, boolean room) throws RemoteException, InvalidTransactionException {
 		int failureCount = 0;
 		int expectedFailureCount = 0;
 
@@ -366,150 +369,98 @@ public class MiddlewareResourceManager implements IResourceManager
 		return m_name;
 	}
 
-	@Override
-	public void abortTransaction(int transactionID) throws RemoteException {
-		System.out.println("Aborting the transaction with ID: " + transactionID);
 
-		try{
-			checkTransactionID(transactionID);
-		}catch(Exception exp){
-			System.out.println(exp.getLocalizedMessage());
-		}
+	public int start() throws RemoteException {
+		int transactionID  = transactionManager.initiateTransaction();
+		Trace.info("Starting the transaction with ID: " + transactionID);
 
-		if(middleware_tm.ifActiveOnTransactID(transactionID)){
-			Transaction transact = middleware_tm.readActiveTransaction(transactionID);
-
-			Set<String> resources = transact.getUsedRMs();
-
-			if (resources.contains("Flight")){
-				flightResourceManager.abortTransaction(transactionID);
-			}
-			if (resources.contains("Flight")){
-				carResourceManager.abortTransaction(transactionID);
-			}
-			if (resources.contains("Flight")){
-				roomResourceManager.abortTransaction(transactionID);
-			}
-
-			endTransaction(transactionID, false);
-		}else{
-			System.out.println("There is no valid Transaction with the ID " + transactionID);
-			return;
-		}
+		return transactionID;
 	}
 
-	@Override
-	public boolean commitTransaction(int transactionID) throws RemoteException {
-		if(!middleware_tm.ifActiveOnTransactID(transactionID)){
-			System.out.println("There is no valid Transaction with the ID " + transactionID);
-			return false;
-		}else{
-			int id = transactionID;
-			System.out.print("Commit transaction:" + transactionID);
+	public void abort(int xid) throws RemoteException, InvalidTransactionException {
+		Trace.info("Aborting the transaction with xid: " + xid);
 
-			checkTransactionID(id);
-			Transaction transact = middleware_tm.readActiveTransaction(transactionID);
+		isValidTransaction(xid);
 
-			Set<String> resources = transact.getUsedRMs();
+		Transaction t = transactionManager.getOngoingTransaction(xid);
 
-			Trace.info("Resource=" + resources);
-			if (resources.contains("Flight")){
-				flightResourceManager.commitTransaction(transactionID);
-			}
-			if (resources.contains("Flight")){
-				carResourceManager.commitTransaction(transactionID);
-			}
-			if (resources.contains("Flight")){
-				roomResourceManager.commitTransaction(transactionID);
-			}
+		// AAA
+		Set<String> resourceManagers = t.getInteractedResourceManagers();
 
-			if (resources.contains("Customer")) {
-				RMHashMap map = transact.getTransactData();
+		if (resourceManagers.contains("Flight"))
+			flightResourceManager.abort(xid);
 
-				synchronized (m_data) {
-					Set<String> keys = map.keySet();
-					for (String key : keys) {
-						System.out.print("Write:(" + key + "," + map.get(key) + ")");
-						m_data.put(key, map.get(key));
-					}
-				}
-			}
+		if (resourceManagers.contains("Car"))
+			carResourceManager.abort(xid);
 
-			endTransaction(transactionID, true);
+		if (resourceManagers.contains("Room"))
+			roomResourceManager.abort(xid);
 
+		transactionManager.nullifyOngoingTransaction(xid);
+
+		t.setCommitted(false);
+		transactionManager.addToDeadTransactions(t);
+
+		lockManager.UnlockAll(xid);
+	}
+
+	private boolean isValidTransaction(int xid) throws InvalidTransactionException {
+		if (transactionManager.isOngoingTransaction(xid)){
+			this.transactionManager.resetLatestInteraction(xid);
 			return true;
 		}
+
+		throw new InvalidTransactionException(xid, "The transaction has either been completed, has been aborted or does not exist !");
+	}
+	// AAA
+	protected void requestLock(int xid, LockType lockType, String data)
+			throws RemoteException, TransactionAbortedException, InvalidTransactionException{
+		try {
+			boolean isLockAcquired = lockManager.Lock(xid, data, lockType);
+			if (!isLockAcquired) {
+				Trace.info("LockManager::Lock(" + xid + ", " + lockType + ", " + data + ") Unable to acquire requested lock");
+				throw new InvalidTransactionException(xid, "LockManager unable to acquire requested " + lockType + " lock for transaction");
+			}
+		} catch (DeadlockException e) {
+			Trace.info("LockManager::Lock(" + xid + ", " + lockType + ", " + data + ") " + e.getMessage());
+			abort(xid);
+			throw new TransactionAbortedException(xid, "The transaction was aborted due a deadlock");
+		}
 	}
 
-	@Override
-	public boolean shutdown() throws RemoteException {
-		flightResourceManager.shutdown();
-		carResourceManager.shutdown();
-		roomResourceManager.shutdown();
+	protected void addResourceManager(int xid, String resourceManager) throws RemoteException {
+		Transaction t = transactionManager.getOngoingTransaction(xid);
+		t.addInteractedResourceManager(resourceManager);
 
-		new Thread() {
-			@Override
-			public void run() {
-				System.out.print("Shutting down thread...");
-				try {
-					sleep(5000);
-				} catch (InterruptedException e) {
-					System.out.println(e.getLocalizedMessage());
-				}
-				System.out.println("Shutting down completed, goodbye!");
-				System.exit(0);
-			}
+		if(resourceManager.equals("Flight")){
+			flightResourceManager.addTransaction(xid);
+		}
+	}
 
-		}.start();
+	public boolean commit(int xid)
+			throws RemoteException, TransactionAbortedException, InvalidTransactionException {
+		Trace.info("Attempting to commit transaction: " + xid);
+
+		isValidTransaction(xid);
+
+		Transaction t = transactionManager.getOngoingTransaction(xid);
+
+		// AAA
+		Set<String> resourceManagers = t.getInteractedResourceManagers();
+		Trace.info("ResourceManagers for xid " + xid + " : " + resourceManagers.toString());
+
+		if(resourceManagers.contains("Flight")){
+			flightResourceManager.commit(xid);
+		}
+
+		transactionManager.nullifyOngoingTransaction(xid);
+
+		t.setCommitted(true);
+		transactionManager.addToDeadTransactions(t);
+		lockManager.UnlockAll(xid);
 
 		return true;
 	}
 
-	@Override
-	public int start() throws RemoteException {
-		int transactionID  = middleware_tm.start();
-		Trace.info("Starting the transaction with ID: " + transactionID);
-		return transactionID;
-	}
-
-	@Override
-	public void addTransaction(int transactionID) throws RemoteException {
-		Trace.info("MiddlewareResourceManager::addTransaction(" + transactionID + ") called");
-		if (!transactionManager.ifActiveOnTransactID(transactionID)) {
-			Trace.info("Added transaction");
-			transactionManager.writeActiveTransaction(transactionID, new Transaction(transactionID));
-		}
-	}
-
-	private void checkTransactionID(int transactionID) {
-		if(middleware_tm.readActiveTransaction(transactionID) != null){
-			updateAllowedTime(transactionID);
-			return;
-		}
-		Trace.info("ERROR: Transaction is not active!");
-
-		Boolean checkTransactID = middleware_tm.hasPastTransaction(transactionID);
-		if(checkTransactID == null){
-			System.out.println("The transaction with ID: " + transactionID + " doesn't exist!");
-		}else if(checkTransactID == true) {
-			System.out.println("The transaction with ID: " + transactionID + " has already been committed");
-		}else{
-			System.out.println("The transaction with ID: " + transactionID + " has been aborted");
-		}
-	}
-
-
-	private void endTransaction(int transactionID, boolean committed) {
-		// Move to inactive transactions
-		middleware_tm.writeActiveTransaction(transactionID, null);
-		middleware_tm.writePastTransaction(transactionID, committed);
-
-		// TODO: do unlocking here with the transaction id
-	}
-
-	//TODO: Add this under every query with the appropriate parameters
-	public void addResourceManagerUsed(int xid, String resourceName) {
-
-	}
 }
  

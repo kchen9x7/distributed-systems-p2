@@ -110,15 +110,15 @@ public class RMIMiddleware extends MiddlewareResourceManager
 		setRoomResourceManager(fetchServerProxy(roomServerHostName, server_port, ROOM_SERVER_NAME));
 	}
 
-	public IResourceManager fetchServerProxy(String server, int port, String name)
+	public IRemoteResourceManager fetchServerProxy(String server, int port, String name)
 	{
-		IResourceManager serverProxy = null;
+		IRemoteResourceManager serverProxy = null;
 		try {
 			boolean first = true;
 			while (true) {
 				try {
 					Registry registry = LocateRegistry.getRegistry(server, port);
-					serverProxy = (IResourceManager)registry.lookup(s_rmiPrefix + name);
+					serverProxy = (IRemoteResourceManager)registry.lookup(s_rmiPrefix + name);
 					System.out.println("Connected to '" + name + "' server [" + server + ":" + port + "/" + s_rmiPrefix + name + "]");
 					break;
 				}

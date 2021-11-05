@@ -1,5 +1,7 @@
 package Client;
 
+import Server.Exception.InvalidTransactionException;
+import Server.Exception.TransactionAbortedException;
 import Server.Interface.*;
 
 import java.util.*;
@@ -67,8 +69,8 @@ public abstract class Client
 		}
 	}
 
-	public void execute(Command cmd, Vector<String> arguments) throws RemoteException, NumberFormatException
-	{
+	public void execute(Command cmd, Vector<String> arguments)
+			throws RemoteException, NumberFormatException, InvalidTransactionException, TransactionAbortedException {
 		switch (cmd)
 		{
 			case Help:
@@ -411,6 +413,27 @@ public abstract class Client
 				} else {
 					System.out.println("Bundle could not be reserved");
 				}
+				break;
+			}
+			case Start: {
+				checkArgumentsCount(1, arguments.size());
+				System.out.println("Starting transaction - awaiting transaction xid");
+				int xid = m_resourceManager.start();
+				System.out.println("Transaction started with xid: " + xid);
+				break;
+			}
+			case Commit: {
+				checkArgumentsCount(2, arguments.size());
+				int xid = toInt(arguments.elementAt(1));
+				System.out.println("Committing transaction xid: " + xid);
+				boolean commit = m_resourceManager.commit(xid);
+				if (commit) {
+					System.out.println(xid + " committed successfully");
+				}
+				else {
+					System.out.println(xid + " failed to commit");
+				}
+
 				break;
 			}
 			case Quit:

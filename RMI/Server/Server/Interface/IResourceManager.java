@@ -1,5 +1,8 @@
 package Server.Interface;
 
+import Server.Exception.InvalidTransactionException;
+import Server.Exception.TransactionAbortedException;
+
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
@@ -11,7 +14,7 @@ import java.util.*;
  * Distributed  System in Java.
  * 
  * failure reporting is done using two pieces, exceptions and boolean 
- * return values.  Exceptions are used for systemy things. Return
+ * return values.  Server.Exceptions are used for systemy things. Return
  * values are used for operations that would affect the consistency
  * 
  * If there is a boolean return value and you're not sure how it 
@@ -33,8 +36,8 @@ public interface IResourceManager extends Remote
      *
      * @return Success
      */
-    public boolean addFlight(int id, int flightNum, int flightSeats, int flightPrice) 
-	throws RemoteException; 
+    public boolean addFlight(int id, int flightNum, int flightSeats, int flightPrice)
+            throws RemoteException, InvalidTransactionException, TransactionAbortedException;
     
     /**
      * Add car at a location.
@@ -44,8 +47,8 @@ public interface IResourceManager extends Remote
      *
      * @return Success
      */
-    public boolean addCars(int id, String location, int numCars, int price) 
-	throws RemoteException; 
+    public boolean addCars(int id, String location, int numCars, int price)
+            throws RemoteException, InvalidTransactionException;
    
     /**
      * Add room at a location.
@@ -55,16 +58,16 @@ public interface IResourceManager extends Remote
      *
      * @return Success
      */
-    public boolean addRooms(int id, String location, int numRooms, int price) 
-	throws RemoteException; 			    
+    public boolean addRooms(int id, String location, int numRooms, int price)
+            throws RemoteException, InvalidTransactionException;
 			    
     /**
      * Add customer.
      *
      * @return Unique customer identifier
      */
-    public int newCustomer(int id) 
-	throws RemoteException; 
+    public int newCustomer(int id)
+            throws RemoteException, InvalidTransactionException;
     
     /**
      * Add customer with id.
@@ -72,7 +75,7 @@ public interface IResourceManager extends Remote
      * @return Success
      */
     public boolean newCustomer(int id, int cid)
-        throws RemoteException;
+            throws RemoteException, InvalidTransactionException;
 
     /**
      * Delete the flight.
@@ -110,8 +113,8 @@ public interface IResourceManager extends Remote
      *
      * @return Success
      */
-    public boolean deleteCustomer(int id, int customerID) 
-	throws RemoteException; 
+    public boolean deleteCustomer(int id, int customerID)
+            throws RemoteException, InvalidTransactionException;
 
     /**
      * Query the status of a flight.
@@ -174,24 +177,24 @@ public interface IResourceManager extends Remote
      *
      * @return Success
      */
-    public boolean reserveFlight(int id, int customerID, int flightNumber) 
-	throws RemoteException; 
+    public boolean reserveFlight(int id, int customerID, int flightNumber)
+            throws RemoteException, InvalidTransactionException;
 
     /**
      * Reserve a car at this location.
      *
      * @return Success
      */
-    public boolean reserveCar(int id, int customerID, String location) 
-	throws RemoteException; 
+    public boolean reserveCar(int id, int customerID, String location)
+            throws RemoteException, InvalidTransactionException;
 
     /**
      * Reserve a room at this location.
      *
      * @return Success
      */
-    public boolean reserveRoom(int id, int customerID, String location) 
-	throws RemoteException; 
+    public boolean reserveRoom(int id, int customerID, String location)
+            throws RemoteException, InvalidTransactionException;
 
     /**
      * Reserve a bundle for the trip.
@@ -199,7 +202,7 @@ public interface IResourceManager extends Remote
      * @return Success
      */
     public boolean bundle(int id, int customerID, Vector<String> flightNumbers, String location, boolean car, boolean room)
-	throws RemoteException; 
+            throws RemoteException, InvalidTransactionException;
 
     /**
      * Convenience for probing the resource manager.
@@ -209,41 +212,22 @@ public interface IResourceManager extends Remote
     public String getName()
         throws RemoteException;
 
-    /**
-     * Abort a transaction with the transaction ID
-     *
-     * @return Success
-     */
-    public void abortTransaction(int transactionID)
-        throws RemoteException;
+//    /**
+//     * Abort a transaction with the transaction ID
+//     *
+//     * @return Success
+//     */
+    public void abort(int transactionID)
+        throws RemoteException, InvalidTransactionException;
 
     /**
      * Start new transaction
      *
      * @return new xid
      */
-    public int start()
-        throws RemoteException;
+    public int start() throws RemoteException;
 
-    /**
-     * Commit a transaction with transactionID
-     *
-     * @return Success
-     */
-    public boolean commitTransaction(int transactionID)
-            throws RemoteException;
-
-    /**
-     * Shutdown
-     *
-     * @return Success
-     */
-    public boolean shutdown()
-            throws RemoteException;
-
-    /**
-     * Add transaction to Middleware ResourceManager's TransactionManager
-     */
-    public void addTransaction(int transactionID) throws RemoteException;
+    public boolean commit(int xid) throws RemoteException,
+            TransactionAbortedException, InvalidTransactionException;
 
 }

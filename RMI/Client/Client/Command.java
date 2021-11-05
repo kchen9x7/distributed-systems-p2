@@ -29,6 +29,9 @@ public enum Command {
 
 	Bundle("Book N flight numbers, and optionally a room and/or car at a location", "<xid>,<CustomerID>,<FlightNumber1>...<FlightNumberN>,<Location>,<Car-Y/N>,<Room-Y/N>"),
 
+	Start("Start a transaction, the xid of the started transaction will be returned", ""),
+	Commit("Commit a transaction for the provided xid", "<xid>"),
+
 	Quit("Exit the client application", "");
 
 	String m_description;

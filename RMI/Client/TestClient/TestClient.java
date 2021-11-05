@@ -1,5 +1,7 @@
 package TestClient;
 
+import Server.Exception.InvalidTransactionException;
+import Server.Exception.TransactionAbortedException;
 import Server.Interface.IResourceManager;
 
 import java.io.BufferedReader;
@@ -70,8 +72,7 @@ public abstract class TestClient
 		}
 	}
 
-	public void execute(TestCommand cmd, Vector<String> arguments) throws RemoteException, NumberFormatException
-	{
+	public void execute(TestCommand cmd, Vector<String> arguments) throws RemoteException, NumberFormatException, InvalidTransactionException, TransactionAbortedException {
 		switch (cmd)
 		{
 			case Help:
