@@ -20,7 +20,7 @@ public class MiddlewareResourceManager implements IResourceManager
 
 	private IResourceManager flightResourceManager = null;
 	private IResourceManager carResourceManager = null;
-    private IResourceManager roomResourceManager = null;
+	private IResourceManager roomResourceManager = null;
 
 	private void setTransactionManager(TransactionManager transactionManager) {
 		this.transactionManager = transactionManager;
