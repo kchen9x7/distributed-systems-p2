@@ -4,7 +4,7 @@ public class InvalidTransactionException extends Exception{
 
     public InvalidTransactionException(int xid, String message)
     {
-        super("Invalid Transaction " + xid + ": " + message);
+        super("InvalidTransactionException > xid " + xid + ": " + message);
     }
 
 }

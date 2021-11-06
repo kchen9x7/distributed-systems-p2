@@ -4,7 +4,7 @@ public class TransactionAbortedException extends Exception{
 
     public TransactionAbortedException(int xid, String message)
     {
-        super("Transaction " + xid + ":" + message);
+        super("TransactionAbortedException > xid " + xid + ": " + message);
     }
 
 }

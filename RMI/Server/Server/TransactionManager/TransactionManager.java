@@ -12,7 +12,7 @@ import java.util.HashMap;
 public class TransactionManager implements Runnable, Serializable {
 
     private int xidCount = 0;
-    private int TTL; // in seconds
+    private int TTL;
     private HashMap<Integer, Transaction> ongoingTransactions;
     private HashMap<Integer, Transaction> deadTransactions;
 

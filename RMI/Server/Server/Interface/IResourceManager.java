@@ -85,8 +85,8 @@ public interface IResourceManager extends Remote
      *
      * @return Success
      */   
-    public boolean deleteFlight(int id, int flightNum) 
-	throws RemoteException; 
+    public boolean deleteFlight(int id, int flightNum)
+            throws RemoteException, InvalidTransactionException, TransactionAbortedException;
     
     /**
      * Delete all cars at a location.
@@ -95,8 +95,8 @@ public interface IResourceManager extends Remote
      *
      * @return Success
      */		    
-    public boolean deleteCars(int id, String location) 
-	throws RemoteException; 
+    public boolean deleteCars(int id, String location)
+            throws RemoteException, InvalidTransactionException;
 
     /**
      * Delete all rooms at a location.
@@ -105,8 +105,8 @@ public interface IResourceManager extends Remote
      *
      * @return Success
      */
-    public boolean deleteRooms(int id, String location) 
-	throws RemoteException; 
+    public boolean deleteRooms(int id, String location)
+            throws RemoteException, InvalidTransactionException;
     
     /**
      * Delete a customer and associated reservations.
@@ -121,56 +121,56 @@ public interface IResourceManager extends Remote
      *
      * @return Number of empty seats
      */
-    public int queryFlight(int id, int flightNumber) 
-	throws RemoteException; 
+    public int queryFlight(int id, int flightNumber)
+            throws RemoteException, InvalidTransactionException, TransactionAbortedException;
 
     /**
      * Query the status of a car location.
      *
      * @return Number of available cars at this location
      */
-    public int queryCars(int id, String location) 
-	throws RemoteException; 
+    public int queryCars(int id, String location)
+            throws RemoteException, InvalidTransactionException;
 
     /**
      * Query the status of a room location.
      *
      * @return Number of available rooms at this location
      */
-    public int queryRooms(int id, String location) 
-	throws RemoteException; 
+    public int queryRooms(int id, String location)
+            throws RemoteException, InvalidTransactionException;
 
     /**
      * Query the customer reservations.
      *
      * @return A formatted bill for the customer
      */
-    public String queryCustomerInfo(int id, int customerID) 
-	throws RemoteException; 
+    public String queryCustomerInfo(int id, int customerID)
+            throws RemoteException, InvalidTransactionException;
     
     /**
      * Query the status of a flight.
      *
      * @return Price of a seat in this flight
      */
-    public int queryFlightPrice(int id, int flightNumber) 
-	throws RemoteException; 
+    public int queryFlightPrice(int id, int flightNumber)
+            throws RemoteException, InvalidTransactionException;
 
     /**
      * Query the status of a car location.
      *
      * @return Price of car
      */
-    public int queryCarsPrice(int id, String location) 
-	throws RemoteException; 
+    public int queryCarsPrice(int id, String location)
+            throws RemoteException, InvalidTransactionException;
 
     /**
      * Query the status of a room location.
      *
      * @return Price of a room
      */
-    public int queryRoomsPrice(int id, String location) 
-	throws RemoteException; 
+    public int queryRoomsPrice(int id, String location)
+            throws RemoteException, InvalidTransactionException;
 
     /**
      * Reserve a seat on this flight.

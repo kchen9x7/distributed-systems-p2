@@ -32,15 +32,30 @@ public class ResourceManager implements IRemoteResourceManager
 	}
 
 	// Reads a data item
-	protected RMItem readData(int xid, String key)
-	{
-		synchronized(m_data) {
-			RMItem item = m_data.get(key);
-			if (item != null) {
-				return (RMItem)item.clone();
-			}
-			return null;
+	protected RMItem readData(int xid, String key) throws InvalidTransactionException {
+		if(!localTransactionManager.isOngoingTransaction(xid)){
+			throw new InvalidTransactionException(xid, "The transaction is not an ongoing transaction");
 		}
+
+		Transaction t = localTransactionManager.getOngoingTransaction(xid);
+
+		RMHashMap t_data = t.getData();
+		boolean isOngoingTransactionContainingData = t_data.keySet().contains(key);
+
+		if (!isOngoingTransactionContainingData) {
+			synchronized (m_data) {
+				RMItem item = m_data.get(key);
+				if (item != null) {
+					return (RMItem)item.clone();
+				} else{
+					return null;
+				}
+			}
+		} else{
+			return t.readData(key);
+		}
+
+
 	}
 
 	// Writes a data item (to the local transaction manager)
@@ -53,16 +68,16 @@ public class ResourceManager implements IRemoteResourceManager
 	}
 
 	// Remove the item out of storage
-	protected void removeData(int xid, String key)
-	{
-		synchronized(m_data) {
-			m_data.remove(key);
+	protected void removeData(int xid, String key) throws InvalidTransactionException {
+		if(!localTransactionManager.isOngoingTransaction(xid)){
+			throw new InvalidTransactionException(xid, "The transaction is not an ongoing transaction");
 		}
+		Transaction t = localTransactionManager.getOngoingTransaction(xid);
+		t.writeData(key, null);
 	}
 
 	// Deletes the encar item
-	protected boolean deleteItem(int xid, String key)
-	{
+	protected boolean deleteItem(int xid, String key) throws InvalidTransactionException {
 		Trace.info("RM::deleteItem(" + xid + ", " + key + ") called");
 		ReservableItem curObj = (ReservableItem)readData(xid, key);
 		// Check if there is such an item in the storage
@@ -88,8 +103,7 @@ public class ResourceManager implements IRemoteResourceManager
 	}
 
 	// Query the number of available seats/rooms/cars
-	protected int queryNum(int xid, String key)
-	{
+	protected int queryNum(int xid, String key) throws InvalidTransactionException {
 		Trace.info("RM::queryNum(" + xid + ", " + key + ") called");
 		ReservableItem curObj = (ReservableItem)readData(xid, key);
 		int value = 0;  
@@ -102,8 +116,7 @@ public class ResourceManager implements IRemoteResourceManager
 	}    
 
 	// Query the price of an item
-	protected int queryPrice(int xid, String key)
-	{
+	protected int queryPrice(int xid, String key) throws InvalidTransactionException {
 		Trace.info("RM::queryPrice(" + xid + ", " + key + ") called");
 		ReservableItem curObj = (ReservableItem)readData(xid, key);
 		int value = 0; 
@@ -230,61 +243,51 @@ public class ResourceManager implements IRemoteResourceManager
 	}
 
 	// Deletes flight
-	public boolean deleteFlight(int xid, int flightNum) throws RemoteException
-	{
+	public boolean deleteFlight(int xid, int flightNum) throws RemoteException, InvalidTransactionException {
 		return deleteItem(xid, Flight.getKey(flightNum));
 	}
 
 	// Delete cars at a location
-	public boolean deleteCars(int xid, String location) throws RemoteException
-	{
+	public boolean deleteCars(int xid, String location) throws RemoteException, InvalidTransactionException {
 		return deleteItem(xid, Car.getKey(location));
 	}
 
 	// Delete rooms at a location
-	public boolean deleteRooms(int xid, String location) throws RemoteException
-	{
+	public boolean deleteRooms(int xid, String location) throws RemoteException, InvalidTransactionException {
 		return deleteItem(xid, Room.getKey(location));
 	}
 
 	// Returns the number of empty seats in this flight
-	public int queryFlight(int xid, int flightNum) throws RemoteException
-	{
+	public int queryFlight(int xid, int flightNum) throws RemoteException, InvalidTransactionException {
 		return queryNum(xid, Flight.getKey(flightNum));
 	}
 
 	// Returns the number of cars available at a location
-	public int queryCars(int xid, String location) throws RemoteException
-	{
+	public int queryCars(int xid, String location) throws RemoteException, InvalidTransactionException {
 		return queryNum(xid, Car.getKey(location));
 	}
 
 	// Returns the amount of rooms available at a location
-	public int queryRooms(int xid, String location) throws RemoteException
-	{
+	public int queryRooms(int xid, String location) throws RemoteException, InvalidTransactionException {
 		return queryNum(xid, Room.getKey(location));
 	}
 
 	// Returns price of a seat in this flight
-	public int queryFlightPrice(int xid, int flightNum) throws RemoteException
-	{
+	public int queryFlightPrice(int xid, int flightNum) throws RemoteException, InvalidTransactionException {
 		return queryPrice(xid, Flight.getKey(flightNum));
 	}
 
 	// Returns price of cars at this location
-	public int queryCarsPrice(int xid, String location) throws RemoteException
-	{
+	public int queryCarsPrice(int xid, String location) throws RemoteException, InvalidTransactionException {
 		return queryPrice(xid, Car.getKey(location));
 	}
 
 	// Returns room price at this location
-	public int queryRoomsPrice(int xid, String location) throws RemoteException
-	{
+	public int queryRoomsPrice(int xid, String location) throws RemoteException, InvalidTransactionException {
 		return queryPrice(xid, Room.getKey(location));
 	}
 
-	public String queryCustomerInfo(int xid, int customerID) throws RemoteException
-	{
+	public String queryCustomerInfo(int xid, int customerID) throws RemoteException, InvalidTransactionException {
 		Trace.info("RM::queryCustomerInfo(" + xid + ", " + customerID + ") called");
 		Customer customer = (Customer)readData(xid, Customer.getKey(customerID));
 		if (customer == null)
@@ -407,7 +410,7 @@ public class ResourceManager implements IRemoteResourceManager
 		synchronized (m_data) {
 			Set<String> keyset = data.keySet();
 			for (String key : keyset) {
-				System.out.println("Writing data: " + key + "," + data.get(key) + "to committed storage");
+				System.out.println("Committing data: " + key + "," + data.get(key) + "to storage");
 				m_data.put(key, data.get(key));
 			}
 		}
@@ -435,22 +438,13 @@ public class ResourceManager implements IRemoteResourceManager
 	}
 
 	public void addTransaction(int xid) throws RemoteException {
-		System.out.println("RESOURCE MANAGER: ---> " + m_name);
 		Trace.info("ResourceManager::addTransaction(" + xid + ") is called");
+		Trace.info(m_name +" Resource Manager adding transaction xid: " + xid);
 		if (!localTransactionManager.isOngoingTransaction(xid)) {
 			Transaction t = new Transaction(xid);
 			localTransactionManager.addToOngoingTransactions(t);
 			Trace.info("Transaction is successfully added to ongoing transactions");
 		}
 	}
-//
-//	@Override
-//	public boolean commitTransaction(int transactionID) throws RemoteException {return false;}
-//
-//	@Override
-//	public boolean shutdown() throws RemoteException {return false;}
-//
-//	@Override
-//	public void addTransaction(int transactionID) throws RemoteException {}
 }
  
