@@ -40,9 +40,11 @@ public class ResourceManager implements IRemoteResourceManager
 		Transaction t = localTransactionManager.getOngoingTransaction(xid);
 
 		RMHashMap t_data = t.getData();
-		boolean isOngoingTransactionContainingData = t_data.keySet().contains(key);
+		boolean isOngoingTransactionContainingData = t_data.containsKey(key);
 
-		if (!isOngoingTransactionContainingData) {
+		if(isOngoingTransactionContainingData){
+			return t.readData(key);
+		} else{
 			synchronized (m_data) {
 				RMItem item = m_data.get(key);
 				if (item != null) {
@@ -51,11 +53,7 @@ public class ResourceManager implements IRemoteResourceManager
 					return null;
 				}
 			}
-		} else{
-			return t.readData(key);
 		}
-
-
 	}
 
 	// Writes a data item (to the local transaction manager)
@@ -393,7 +391,7 @@ public class ResourceManager implements IRemoteResourceManager
 //	public void abortTransaction(int transactionID) throws RemoteException {}
 //
 	public int start() throws RemoteException {
-		System.out.println("Method not valid for this environment !");
+		Trace.error("Method not valid for this environment !");
 		return 0;
 	}
 

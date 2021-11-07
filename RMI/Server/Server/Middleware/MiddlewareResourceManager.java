@@ -81,9 +81,19 @@ public class MiddlewareResourceManager implements IResourceManager
         }
 	}
 
-	public boolean addCars(int xid, String location, int count, int price) throws RemoteException, InvalidTransactionException {
-		Trace.info("Request for AddCars received from Client.");
-        Trace.info("Forwarding request to Car Server...");
+	// IMPLEMENTED
+	// ***********
+	public boolean addCars(int xid, String location, int count, int price) throws RemoteException, InvalidTransactionException, TransactionAbortedException {
+		p.printIntro(xid, "addCars");
+
+		p.printValidation(xid);
+		isValidTransaction(xid);
+
+		p.printLockRequest(xid, LockType.LOCK_WRITE);
+		requestLock(xid, LockType.LOCK_WRITE, Car.getKey(location));
+		addResourceManager(xid, ResourceManagerEnum.Car);
+
+		p.printForwarding(xid, ResourceManagerEnum.Car);
         if (carResourceManager.addCars(xid, location, count, price)) {
             Trace.info("Car server completed request successfully!");
             return true;
@@ -93,9 +103,19 @@ public class MiddlewareResourceManager implements IResourceManager
         }
 	}
 
-	public boolean addRooms(int xid, String location, int count, int price) throws RemoteException, InvalidTransactionException {
-		Trace.info("Request for AddRooms received from Client.");
-        Trace.info("Forwarding request to Room Server...");
+	// IMPLEMENTED
+	// ***********
+	public boolean addRooms(int xid, String location, int count, int price) throws RemoteException, InvalidTransactionException, TransactionAbortedException {
+		p.printIntro(xid, "addRooms");
+
+		p.printValidation(xid);
+		isValidTransaction(xid);
+
+		p.printLockRequest(xid, LockType.LOCK_WRITE);
+		requestLock(xid, LockType.LOCK_WRITE, Room.getKey(location));
+		addResourceManager(xid, ResourceManagerEnum.Room);
+
+		p.printForwarding(xid, ResourceManagerEnum.Room);
         if (roomResourceManager.addRooms(xid, location, count, price)) {
             Trace.info("Room server completed request successfully!");
             return true;
@@ -105,13 +125,24 @@ public class MiddlewareResourceManager implements IResourceManager
         }
 	}
 
-	public int newCustomer(int xid) throws RemoteException, InvalidTransactionException {
-		Trace.info("Request for AddRooms received from Client.");
-		Trace.info("Replicating customer information on distributed servers...");
+	// IMPLEMENTED
+	// ***********
+	public int newCustomer(int xid) throws RemoteException, InvalidTransactionException, TransactionAbortedException {
+		p.printIntro(xid, "newCustomer");
+
+		p.printValidation(xid);
+		isValidTransaction(xid);
+
+		p.printLockRequest(xid, LockType.LOCK_WRITE);
 
 		int cid = Integer.parseInt(String.valueOf(xid) +
-		String.valueOf(Calendar.getInstance().get(Calendar.MILLISECOND)) +
-		String.valueOf(Math.round(Math.random() * 100 + 1)));
+					String.valueOf(Calendar.getInstance().get(Calendar.MILLISECOND)) +
+					String.valueOf(Math.round(Math.random() * 100 + 1)));
+
+		requestLock(xid, LockType.LOCK_WRITE, Customer.getKey(cid));
+		addResourceManager(xid, ResourceManagerEnum.Customer);
+
+		Trace.info("xid: " + xid + " Replicating customer information (id = "+ cid +") on distributed servers.");
 
 		boolean isFlightCustomerAdded = flightResourceManager.newCustomer(xid, cid);
 		boolean isCarCustomerAdded = carResourceManager.newCustomer(xid, cid);
@@ -124,13 +155,25 @@ public class MiddlewareResourceManager implements IResourceManager
 			flightResourceManager.deleteCustomer(xid, cid);
 			carResourceManager.deleteCustomer(xid, cid);
 			roomResourceManager.deleteCustomer(xid, cid);
-			throw new IllegalArgumentException("Failed to replicate customer as atleast one distributed server failed to add customer.");
+			throw new IllegalArgumentException("Failed to replicate customer as at least one distributed server failed to add customer.");
 		}
 	}
 
-	public boolean newCustomer(int xid, int customerID) throws RemoteException, InvalidTransactionException {
-		Trace.info("Request for AddRooms received from Client.");
-		Trace.info("Replicating customer information on distributed servers...");
+	// IMPLEMENTED
+	// ***********
+	public boolean newCustomer(int xid, int customerID) throws RemoteException, InvalidTransactionException, TransactionAbortedException {
+		p.printIntro(xid, "newCustomer");
+
+		p.printValidation(xid);
+		isValidTransaction(xid);
+
+		int cid = customerID;
+
+		p.printLockRequest(xid, LockType.LOCK_WRITE);
+		requestLock(xid, LockType.LOCK_WRITE, Customer.getKey(cid));
+		addResourceManager(xid, ResourceManagerEnum.Customer);
+
+		Trace.info("xid: " + xid + " Replicating customer information (id = "+ cid +") on distributed servers.");
 
 		boolean isFlightCustomerAdded = flightResourceManager.newCustomer(xid, customerID);
 		boolean isCarCustomerAdded = carResourceManager.newCustomer(xid, customerID);
@@ -148,6 +191,8 @@ public class MiddlewareResourceManager implements IResourceManager
 		}
 	}
 
+	// IMPLEMENTED
+	// ***********
 	public boolean deleteFlight(int xid, int flightNum) throws RemoteException, InvalidTransactionException, TransactionAbortedException {
 		p.printIntro(xid, "deleteFlight");
 
@@ -155,7 +200,7 @@ public class MiddlewareResourceManager implements IResourceManager
 		isValidTransaction(xid);
 
 		p.printLockRequest(xid, LockType.LOCK_WRITE);
-		requestLock(xid, LockType.LOCK_READ, Flight.getKey(flightNum));
+		requestLock(xid, LockType.LOCK_WRITE, Flight.getKey(flightNum));
 		addResourceManager(xid, ResourceManagerEnum.Flight);
 
 		p.printForwarding(xid, ResourceManagerEnum.Flight);
@@ -168,9 +213,19 @@ public class MiddlewareResourceManager implements IResourceManager
         }
 	}
 
-	public boolean deleteCars(int xid, String location) throws RemoteException, InvalidTransactionException {
-		Trace.info("Request for DeleteCars received from Client.");
-        Trace.info("Forwarding request to Car Server...");
+	// IMPLEMENTED
+	// ***********
+	public boolean deleteCars(int xid, String location) throws RemoteException, InvalidTransactionException, TransactionAbortedException {
+		p.printIntro(xid, "deleteCars");
+
+		p.printValidation(xid);
+		isValidTransaction(xid);
+
+		p.printLockRequest(xid, LockType.LOCK_WRITE);
+		requestLock(xid, LockType.LOCK_WRITE, Car.getKey(location));
+		addResourceManager(xid, ResourceManagerEnum.Car);
+
+		p.printForwarding(xid, ResourceManagerEnum.Car);
         if (carResourceManager.deleteCars(xid, location)) {
             Trace.info("Car server completed request successfully!");
             return true;
@@ -180,10 +235,20 @@ public class MiddlewareResourceManager implements IResourceManager
         }
 	}
 
-	public boolean deleteRooms(int xid, String location) throws RemoteException, InvalidTransactionException {
-		Trace.info("Request for DeleteRooms received from Client.");
-        Trace.info("Forwarding request to Room Server...");
-        if (roomResourceManager.deleteRooms(xid, location)) {
+	// IMPLEMENTED
+	// ***********
+	public boolean deleteRooms(int xid, String location) throws RemoteException, InvalidTransactionException, TransactionAbortedException {
+		p.printIntro(xid, "deleteRooms");
+
+		p.printValidation(xid);
+		isValidTransaction(xid);
+
+		p.printLockRequest(xid, LockType.LOCK_WRITE);
+		requestLock(xid, LockType.LOCK_WRITE, Room.getKey(location));
+		addResourceManager(xid, ResourceManagerEnum.Room);
+
+		p.printForwarding(xid, ResourceManagerEnum.Room);
+		if (roomResourceManager.deleteRooms(xid, location)) {
             Trace.info("Room server completed request successfully!");
             return true;
 		} else {
@@ -239,29 +304,63 @@ public class MiddlewareResourceManager implements IResourceManager
 		Trace.info("xid " + xid + ": Flight server response sending back to Client.");
 		return value;
 	}
+	// IMPLEMENTED
+	// ***********
+	public int queryCars(int xid, String location) throws RemoteException, InvalidTransactionException, TransactionAbortedException {
+		p.printIntro(xid, "queryCars");
 
-	public int queryCars(int xid, String location) throws RemoteException, InvalidTransactionException {
-		Trace.info("Request for QueryCars received from Client.");
-        Trace.info("Forwarding request to Car Server...");
+		p.printValidation(xid);
+		isValidTransaction(xid);
+
+		p.printLockRequest(xid, LockType.LOCK_READ);
+		requestLock(xid, LockType.LOCK_READ, Car.getKey(location));
+		addResourceManager(xid, ResourceManagerEnum.Car);
+
+		p.printForwarding(xid, ResourceManagerEnum.Car);
 		int value = carResourceManager.queryCars(xid, location);
         Trace.info("Car server response sending back to Client.");
 		return value;
 	}
 
-	public int queryRooms(int xid, String location) throws RemoteException, InvalidTransactionException {
-		Trace.info("Request for QueryRooms received from Client.");
-        Trace.info("Forwarding request to Room Server...");
+	// IMPLEMENTED
+	// ***********
+	public int queryRooms(int xid, String location) throws RemoteException, InvalidTransactionException, TransactionAbortedException {
+		p.printIntro(xid, "queryRooms");
+
+		p.printValidation(xid);
+		isValidTransaction(xid);
+
+		p.printLockRequest(xid, LockType.LOCK_READ);
+		requestLock(xid, LockType.LOCK_READ, Room.getKey(location));
+		addResourceManager(xid, ResourceManagerEnum.Room);
+
+		p.printForwarding(xid, ResourceManagerEnum.Room);
 		int value = roomResourceManager.queryRooms(xid, location);
         Trace.info("Room server response sending back to Client.");
 		return value;
 	}
 
-	public String queryCustomerInfo(int xid, int customerID) throws RemoteException, InvalidTransactionException {
-		Trace.info("Request for QueryCustomer received from Client.");
+	// IMPLEMENTED
+	// ***********
+	public String queryCustomerInfo(int xid, int customerID) throws RemoteException, InvalidTransactionException, TransactionAbortedException {
+		p.printIntro(xid, "queryCustomerInfo");
+
+		p.printValidation(xid);
+		isValidTransaction(xid);
+
+		p.printLockRequest(xid, LockType.LOCK_READ);
+		requestLock(xid, LockType.LOCK_READ, Customer.getKey(customerID));
+		addResourceManager(xid, ResourceManagerEnum.Customer);
+
 		Trace.info("Obtaining client information from across distributed servers...");
 
+		p.printForwarding(xid, ResourceManagerEnum.Flight);
 		String flightCustomerInfo = flightResourceManager.queryCustomerInfo(xid, customerID);
+
+		p.printForwarding(xid, ResourceManagerEnum.Car);
 		String carCustomerInfo = carResourceManager.queryCustomerInfo(xid, customerID);
+
+		p.printForwarding(xid, ResourceManagerEnum.Room);
 		String roomCustomerInfo = roomResourceManager.queryCustomerInfo(xid, customerID);
 
 		Trace.info("Returning customer information to client.");
@@ -289,35 +388,73 @@ public class MiddlewareResourceManager implements IResourceManager
 		return s;
 	}
 
-	public int queryFlightPrice(int xid, int flightNum) throws RemoteException, InvalidTransactionException {
-		Trace.info("Request for QueryFlightPrice received from Client.");
-        Trace.info("Forwarding request to Flight Server...");
+	// IMPLEMENTED
+	// ***********
+	public int queryFlightPrice(int xid, int flightNum) throws RemoteException, InvalidTransactionException, TransactionAbortedException {
+		p.printIntro(xid, "queryFlightPrice");
+
+		p.printValidation(xid);
+		isValidTransaction(xid);
+
+		p.printLockRequest(xid, LockType.LOCK_READ);
+		requestLock(xid, LockType.LOCK_READ, Flight.getKey(flightNum));
+		addResourceManager(xid, ResourceManagerEnum.Flight);
+
+		p.printForwarding(xid, ResourceManagerEnum.Flight);
 		int value = flightResourceManager.queryFlightPrice(xid, flightNum);
         Trace.info("Flight server response sending back to Client.");
 		return value;
 	}
 
-	public int queryCarsPrice(int xid, String location) throws RemoteException, InvalidTransactionException {
-		Trace.info("Request for QueryCarsPrice received from Client.");
-        Trace.info("Forwarding request to Car Server...");
+	// IMPLEMENTED
+	// ***********
+	public int queryCarsPrice(int xid, String location) throws RemoteException, InvalidTransactionException, TransactionAbortedException {
+		p.printIntro(xid, "queryCarsPrice");
+
+		p.printValidation(xid);
+		isValidTransaction(xid);
+
+		p.printLockRequest(xid, LockType.LOCK_READ);
+		requestLock(xid, LockType.LOCK_READ, Car.getKey(location));
+		addResourceManager(xid, ResourceManagerEnum.Car);
+
+		p.printForwarding(xid, ResourceManagerEnum.Car);
 		int value = carResourceManager.queryCarsPrice(xid, location);
         Trace.info("Car server response sending back to Client.");
 		return value;
 	}
 
-	public int queryRoomsPrice(int xid, String location) throws RemoteException, InvalidTransactionException {
-		Trace.info("Request for QueryRoomsPrice received from Client.");
-        Trace.info("Forwarding request to Room Server...");
+	// IMPLEMENTED
+	// ***********
+	public int queryRoomsPrice(int xid, String location) throws RemoteException, InvalidTransactionException, TransactionAbortedException {
+		p.printIntro(xid, "queryRoomsPrice");
+
+		p.printValidation(xid);
+		isValidTransaction(xid);
+
+		p.printLockRequest(xid, LockType.LOCK_READ);
+		requestLock(xid, LockType.LOCK_READ, Room.getKey(location));
+		addResourceManager(xid, ResourceManagerEnum.Room);
+
+		p.printForwarding(xid, ResourceManagerEnum.Room);
 		int value = roomResourceManager.queryRoomsPrice(xid, location);
         Trace.info("Room server response sending back to Client.");
 		return value;
 	}
 
 
-	public boolean reserveFlight(int xid, int customerID, int flightNum) throws RemoteException, InvalidTransactionException {
-		Trace.info("Request for ReserveFlight received from Client.");
-		Trace.info("Forwarding request to Flight Server...");
+	public boolean reserveFlight(int xid, int customerID, int flightNum) throws RemoteException, InvalidTransactionException, TransactionAbortedException {
+		p.printIntro(xid, "reserveFlight");
 
+		p.printValidation(xid);
+		isValidTransaction(xid);
+
+		p.printLockRequest(xid, LockType.LOCK_WRITE);
+		requestLock(xid, LockType.LOCK_WRITE, Customer.getKey(customerID));
+		requestLock(xid, LockType.LOCK_WRITE, Flight.getKey(flightNum));
+		addResourceManager(xid, ResourceManagerEnum.Customer);
+
+		p.printForwarding(xid, ResourceManagerEnum.Flight);
 		if(flightResourceManager.reserveFlight(xid, customerID, flightNum)){
 			Trace.info("Flight server completed request successfully!");
 			return true;
@@ -354,7 +491,7 @@ public class MiddlewareResourceManager implements IResourceManager
 		}
 	}
 
-	public boolean bundle(int xid, int customerId, Vector<String> flightNumbers, String location, boolean car, boolean room) throws RemoteException, InvalidTransactionException {
+	public boolean bundle(int xid, int customerId, Vector<String> flightNumbers, String location, boolean car, boolean room) throws RemoteException, InvalidTransactionException, TransactionAbortedException {
 		int failureCount = 0;
 		int expectedFailureCount = 0;
 
@@ -402,14 +539,33 @@ public class MiddlewareResourceManager implements IResourceManager
 		Transaction t = transactionManager.getOngoingTransaction(xid);
 		Set<ResourceManagerEnum> resourceManagers = t.getInteractedResourceManagers();
 
+		boolean isFlightAborted = false;
+		boolean isCarAborted = false;
+		boolean isRoomAborted = false;
+
 		if (resourceManagers.contains(ResourceManagerEnum.Flight)) {
 			flightResourceManager.abort(xid);
+			isFlightAborted = true;
 		}
 		if (resourceManagers.contains(ResourceManagerEnum.Car)){
 			carResourceManager.abort(xid);
+			isCarAborted = true;
 		}
 		if (resourceManagers.contains(ResourceManagerEnum.Room)){
 			roomResourceManager.abort(xid);
+			isRoomAborted = true;
+		}
+		if (resourceManagers.contains(ResourceManagerEnum.Customer)){
+			// replicate abort on all remote server
+			if(!isFlightAborted){
+				flightResourceManager.abort(xid);
+			}
+			if(!isCarAborted){
+				carResourceManager.abort(xid);
+			}
+			if(!isRoomAborted){
+				roomResourceManager.abort(xid);
+			}
 		}
 
 		transactionManager.nullifyOngoingTransaction(xid);
@@ -457,6 +613,12 @@ public class MiddlewareResourceManager implements IResourceManager
 		if(resourceManager.equals(ResourceManagerEnum.Room)){
 			roomResourceManager.addTransaction(xid);
 		}
+		if(resourceManager.equals(ResourceManagerEnum.Customer)){
+			// replicate transaction on all remote servers
+			flightResourceManager.addTransaction(xid);
+			carResourceManager.addTransaction(xid);
+			roomResourceManager.addTransaction(xid);
+		}
 	}
 
 	public boolean commit(int xid)
@@ -470,14 +632,33 @@ public class MiddlewareResourceManager implements IResourceManager
 		Set<ResourceManagerEnum> resourceManagers = t.getInteractedResourceManagers();
 		Trace.info("ResourceManagers for xid " + xid + " : " + resourceManagers.toString());
 
+		boolean isFlightCommitted = false;
+		boolean isCarCommitted = false;
+		boolean isRoomCommitted = false;
+
 		if (resourceManagers.contains(ResourceManagerEnum.Flight)) {
 			flightResourceManager.commit(xid);
+			isFlightCommitted = true;
 		}
 		if (resourceManagers.contains(ResourceManagerEnum.Car)){
 			carResourceManager.commit(xid);
+			isCarCommitted = true;
 		}
 		if (resourceManagers.contains(ResourceManagerEnum.Room)){
 			roomResourceManager.commit(xid);
+			isRoomCommitted = true;
+		}
+		if (resourceManagers.contains(ResourceManagerEnum.Customer)){
+			// replicate commit on all remote servers.
+			if(!isFlightCommitted){
+				flightResourceManager.commit(xid);
+			}
+			if(!isCarCommitted){
+				carResourceManager.commit(xid);
+			}
+			if(!isRoomCommitted){
+				roomResourceManager.commit(xid);
+			}
 		}
 
 		transactionManager.nullifyOngoingTransaction(xid);
