@@ -65,7 +65,7 @@ public class MiddlewareResourceManager implements IResourceManager
 		p.printIntro(xid, "addFlight");
 
 		p.printValidation(xid);
-        isValidTransaction(xid);
+        validateTransaction(xid);
 
 		p.printLockRequest(xid, LockType.LOCK_WRITE);
         requestLock(xid, LockType.LOCK_WRITE, Flight.getKey(flightNum));
@@ -87,7 +87,7 @@ public class MiddlewareResourceManager implements IResourceManager
 		p.printIntro(xid, "addCars");
 
 		p.printValidation(xid);
-		isValidTransaction(xid);
+		validateTransaction(xid);
 
 		p.printLockRequest(xid, LockType.LOCK_WRITE);
 		requestLock(xid, LockType.LOCK_WRITE, Car.getKey(location));
@@ -109,7 +109,7 @@ public class MiddlewareResourceManager implements IResourceManager
 		p.printIntro(xid, "addRooms");
 
 		p.printValidation(xid);
-		isValidTransaction(xid);
+		validateTransaction(xid);
 
 		p.printLockRequest(xid, LockType.LOCK_WRITE);
 		requestLock(xid, LockType.LOCK_WRITE, Room.getKey(location));
@@ -131,7 +131,7 @@ public class MiddlewareResourceManager implements IResourceManager
 		p.printIntro(xid, "newCustomer");
 
 		p.printValidation(xid);
-		isValidTransaction(xid);
+		validateTransaction(xid);
 
 		p.printLockRequest(xid, LockType.LOCK_WRITE);
 
@@ -165,7 +165,7 @@ public class MiddlewareResourceManager implements IResourceManager
 		p.printIntro(xid, "newCustomer");
 
 		p.printValidation(xid);
-		isValidTransaction(xid);
+		validateTransaction(xid);
 
 		int cid = customerID;
 
@@ -197,7 +197,7 @@ public class MiddlewareResourceManager implements IResourceManager
 		p.printIntro(xid, "deleteFlight");
 
 		p.printValidation(xid);
-		isValidTransaction(xid);
+		validateTransaction(xid);
 
 		p.printLockRequest(xid, LockType.LOCK_WRITE);
 		requestLock(xid, LockType.LOCK_WRITE, Flight.getKey(flightNum));
@@ -219,7 +219,7 @@ public class MiddlewareResourceManager implements IResourceManager
 		p.printIntro(xid, "deleteCars");
 
 		p.printValidation(xid);
-		isValidTransaction(xid);
+		validateTransaction(xid);
 
 		p.printLockRequest(xid, LockType.LOCK_WRITE);
 		requestLock(xid, LockType.LOCK_WRITE, Car.getKey(location));
@@ -241,7 +241,7 @@ public class MiddlewareResourceManager implements IResourceManager
 		p.printIntro(xid, "deleteRooms");
 
 		p.printValidation(xid);
-		isValidTransaction(xid);
+		validateTransaction(xid);
 
 		p.printLockRequest(xid, LockType.LOCK_WRITE);
 		requestLock(xid, LockType.LOCK_WRITE, Room.getKey(location));
@@ -257,9 +257,19 @@ public class MiddlewareResourceManager implements IResourceManager
         }
 	}
 
-	public boolean deleteCustomer(int xid, int customerID) throws RemoteException, InvalidTransactionException {
-		Trace.info("Request for DeleteCustomer received from Client.");
-		Trace.info("Deleting customer across distributed servers...");
+	// IMPLEMENTED
+	// ***********
+	public boolean deleteCustomer(int xid, int customerID) throws RemoteException, InvalidTransactionException, TransactionAbortedException {
+		p.printIntro(xid, "deleteCustomer");
+
+		p.printValidation(xid);
+		validateTransaction(xid);
+
+		p.printLockRequest(xid, LockType.LOCK_WRITE);
+		requestLock(xid, LockType.LOCK_WRITE, Customer.getKey(customerID));
+		addResourceManager(xid, ResourceManagerEnum.Customer);
+
+		Trace.info("xid: " + xid + " Deleting customer information (id = "+ customerID +") on distributed servers.");
 
 		boolean isFlightCustomerDeleted = flightResourceManager.deleteCustomer(xid, customerID);
 		boolean isCarCustomerDeleted = carResourceManager.deleteCustomer(xid, customerID);
@@ -292,7 +302,7 @@ public class MiddlewareResourceManager implements IResourceManager
 		p.printIntro(xid, "queryFlight");
 
 		p.printValidation(xid);
-		isValidTransaction(xid);
+		validateTransaction(xid);
 
 		p.printLockRequest(xid, LockType.LOCK_READ);
 		requestLock(xid, LockType.LOCK_READ, Flight.getKey(flightNum));
@@ -310,7 +320,7 @@ public class MiddlewareResourceManager implements IResourceManager
 		p.printIntro(xid, "queryCars");
 
 		p.printValidation(xid);
-		isValidTransaction(xid);
+		validateTransaction(xid);
 
 		p.printLockRequest(xid, LockType.LOCK_READ);
 		requestLock(xid, LockType.LOCK_READ, Car.getKey(location));
@@ -328,7 +338,7 @@ public class MiddlewareResourceManager implements IResourceManager
 		p.printIntro(xid, "queryRooms");
 
 		p.printValidation(xid);
-		isValidTransaction(xid);
+		validateTransaction(xid);
 
 		p.printLockRequest(xid, LockType.LOCK_READ);
 		requestLock(xid, LockType.LOCK_READ, Room.getKey(location));
@@ -346,7 +356,7 @@ public class MiddlewareResourceManager implements IResourceManager
 		p.printIntro(xid, "queryCustomerInfo");
 
 		p.printValidation(xid);
-		isValidTransaction(xid);
+		validateTransaction(xid);
 
 		p.printLockRequest(xid, LockType.LOCK_READ);
 		requestLock(xid, LockType.LOCK_READ, Customer.getKey(customerID));
@@ -394,7 +404,7 @@ public class MiddlewareResourceManager implements IResourceManager
 		p.printIntro(xid, "queryFlightPrice");
 
 		p.printValidation(xid);
-		isValidTransaction(xid);
+		validateTransaction(xid);
 
 		p.printLockRequest(xid, LockType.LOCK_READ);
 		requestLock(xid, LockType.LOCK_READ, Flight.getKey(flightNum));
@@ -412,7 +422,7 @@ public class MiddlewareResourceManager implements IResourceManager
 		p.printIntro(xid, "queryCarsPrice");
 
 		p.printValidation(xid);
-		isValidTransaction(xid);
+		validateTransaction(xid);
 
 		p.printLockRequest(xid, LockType.LOCK_READ);
 		requestLock(xid, LockType.LOCK_READ, Car.getKey(location));
@@ -430,7 +440,7 @@ public class MiddlewareResourceManager implements IResourceManager
 		p.printIntro(xid, "queryRoomsPrice");
 
 		p.printValidation(xid);
-		isValidTransaction(xid);
+		validateTransaction(xid);
 
 		p.printLockRequest(xid, LockType.LOCK_READ);
 		requestLock(xid, LockType.LOCK_READ, Room.getKey(location));
@@ -442,12 +452,13 @@ public class MiddlewareResourceManager implements IResourceManager
 		return value;
 	}
 
-
+	// IMPLEMENTED
+	// ***********
 	public boolean reserveFlight(int xid, int customerID, int flightNum) throws RemoteException, InvalidTransactionException, TransactionAbortedException {
 		p.printIntro(xid, "reserveFlight");
 
 		p.printValidation(xid);
-		isValidTransaction(xid);
+		validateTransaction(xid);
 
 		p.printLockRequest(xid, LockType.LOCK_WRITE);
 		requestLock(xid, LockType.LOCK_WRITE, Customer.getKey(customerID));
@@ -464,11 +475,20 @@ public class MiddlewareResourceManager implements IResourceManager
 		}
 	}
 
+	// IMPLEMENTED
+	// ***********
+	public boolean reserveCar(int xid, int customerID, String location) throws RemoteException, InvalidTransactionException, TransactionAbortedException {
+		p.printIntro(xid, "reserveCar");
 
-	public boolean reserveCar(int xid, int customerID, String location) throws RemoteException, InvalidTransactionException {
-		Trace.info("Request for ReserveCar received from Client.");
-		Trace.info("Forwarding request to Car Server...");
+		p.printValidation(xid);
+		validateTransaction(xid);
 
+		p.printLockRequest(xid, LockType.LOCK_WRITE);
+		requestLock(xid, LockType.LOCK_WRITE, Customer.getKey(customerID));
+		requestLock(xid, LockType.LOCK_WRITE, Car.getKey(location));
+		addResourceManager(xid, ResourceManagerEnum.Customer);
+
+		p.printForwarding(xid, ResourceManagerEnum.Car);
 		if(carResourceManager.reserveCar(xid, customerID, location)){
 			Trace.info("Car server completed request successfully!");
 			return true;
@@ -478,10 +498,20 @@ public class MiddlewareResourceManager implements IResourceManager
 		}
 	}
 
-	public boolean reserveRoom(int xid, int customerID, String location) throws RemoteException, InvalidTransactionException {
-		Trace.info("Request for ReserveRoom received from Client.");
-		Trace.info("Forwarding request to Room Server...");
+	// IMPLEMENTED
+	// ***********
+	public boolean reserveRoom(int xid, int customerID, String location) throws RemoteException, InvalidTransactionException, TransactionAbortedException {
+		p.printIntro(xid, "reserveRoom");
 
+		p.printValidation(xid);
+		validateTransaction(xid);
+
+		p.printLockRequest(xid, LockType.LOCK_WRITE);
+		requestLock(xid, LockType.LOCK_WRITE, Customer.getKey(customerID));
+		requestLock(xid, LockType.LOCK_WRITE, Room.getKey(location));
+		addResourceManager(xid, ResourceManagerEnum.Customer);
+
+		p.printForwarding(xid, ResourceManagerEnum.Room);
 		if(roomResourceManager.reserveRoom(xid, customerID, location)){
 			Trace.info("Room server completed request successfully!");
 			return true;
@@ -534,7 +564,7 @@ public class MiddlewareResourceManager implements IResourceManager
 	public void abort(int xid) throws RemoteException, InvalidTransactionException {
 		p.printAbort(xid);
 
-		isValidTransaction(xid);
+		validateTransaction(xid);
 
 		Transaction t = transactionManager.getOngoingTransaction(xid);
 		Set<ResourceManagerEnum> resourceManagers = t.getInteractedResourceManagers();
@@ -576,7 +606,7 @@ public class MiddlewareResourceManager implements IResourceManager
 		lockManager.UnlockAll(xid);
 	}
 
-	private boolean isValidTransaction(int xid) throws InvalidTransactionException {
+	private boolean validateTransaction(int xid) throws InvalidTransactionException {
 		if (this.transactionManager.isOngoingTransaction(xid)){
 			this.transactionManager.resetLatestInteraction(xid);
 			return true;
@@ -625,7 +655,7 @@ public class MiddlewareResourceManager implements IResourceManager
 			throws RemoteException, TransactionAbortedException, InvalidTransactionException {
 		p.printCommit(xid);
 
-		isValidTransaction(xid);
+		validateTransaction(xid);
 
 		Transaction t = transactionManager.getOngoingTransaction(xid);
 
