@@ -31,6 +31,8 @@ public enum Command {
 
 	Start("Start a transaction, the xid of the started transaction will be returned", ""),
 	Commit("Commit a transaction for the provided xid", "<xid>"),
+	Abort("Abort a transaction for the provided xid", "<xid>"),
+	Shutdown("Gracefully exit all servers",""),
 
 	Quit("Exit the client application", "");
 

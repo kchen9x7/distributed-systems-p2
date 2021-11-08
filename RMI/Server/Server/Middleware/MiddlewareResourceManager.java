@@ -699,5 +699,25 @@ public class MiddlewareResourceManager implements IResourceManager
 		return true;
 	}
 
+	public boolean shutdown() throws RemoteException{
+		try{
+			flightResourceManager.shutdown();
+		}catch (RemoteException e){
+			Trace.info("Flight resource manager was shut down successfully.");
+		}
+		try{
+			carResourceManager.shutdown();
+		}catch (RemoteException e){
+			Trace.info("Car resource manager was shut down successfully.");
+		}
+		try{
+			roomResourceManager.shutdown();
+		}catch (RemoteException e){
+			Trace.info("Room resource manager was shut down successfully.");
+		}
+		System.exit(0);
+		return true;
+	}
+
 }
  

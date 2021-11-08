@@ -439,6 +439,24 @@ public abstract class Client
 
 				break;
 			}
+			case Abort: {
+				checkArgumentsCount(2, arguments.size());
+				int xid = toInt(arguments.elementAt(1));
+				System.out.println("Aborting transaction xid: " + xid);
+				m_resourceManager.abort(xid);
+				System.out.println("Transaction aborted");
+				break;
+			}
+			case Shutdown: {
+				checkArgumentsCount(1, arguments.size());
+				System.out.println("Exiting all servers");
+				try{
+					m_resourceManager.shutdown();
+				} catch (ConnectException|UnmarshalException e){
+					System.out.println("All servers shut down successfully");
+				}
+				break;
+			}
 			case Quit:
 				checkArgumentsCount(1, arguments.size());
 

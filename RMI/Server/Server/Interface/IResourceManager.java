@@ -212,11 +212,11 @@ public interface IResourceManager extends Remote
     public String getName()
         throws RemoteException;
 
-//    /**
-//     * Abort a transaction with the transaction ID
-//     *
-//     * @return Success
-//     */
+    /**
+     * Abort a transaction with the transaction ID
+     *
+     * @return Success
+     */
     public void abort(int transactionID)
         throws RemoteException, InvalidTransactionException;
 
@@ -229,5 +229,12 @@ public interface IResourceManager extends Remote
 
     public boolean commit(int xid) throws RemoteException,
             TransactionAbortedException, InvalidTransactionException;
+
+    /**
+     * Shut down all servers
+     * @return
+     * @throws RemoteException
+     */
+    public boolean shutdown() throws RemoteException;
 
 }

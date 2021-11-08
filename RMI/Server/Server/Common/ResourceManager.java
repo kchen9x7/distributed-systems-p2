@@ -421,6 +421,12 @@ public class ResourceManager implements IRemoteResourceManager
 		return true;
 	}
 
+	public boolean shutdown() throws RemoteException {
+		System.out.println("Shutting the " + m_name + " server.");
+		System.exit(0);
+		return true;
+	}
+
 	public void abort(int xid) throws RemoteException, InvalidTransactionException {
 		Trace.info("Aborting transaction with xid: " + xid);
 		if(!localTransactionManager.isOngoingTransaction(xid)){
