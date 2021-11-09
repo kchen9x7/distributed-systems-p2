@@ -73,129 +73,129 @@ public abstract class TestClient
 	}
 
 	public void execute(TestCommand cmd, Vector<String> arguments) throws RemoteException, NumberFormatException, InvalidTransactionException, TransactionAbortedException {
-		switch (cmd)
-		{
-			case Help:
-			{
-				if (arguments.size() == 1) {
-					System.out.println(TestCommand.description());
-				} else if (arguments.size() == 2) {
-					TestCommand l_cmd = TestCommand.fromString((String)arguments.elementAt(1));
-					System.out.println(l_cmd.toString());
-				} else {
-					System.err.println((char)27 + "[31;1mCommand exception: " + (char)27 + "[0mImproper use of help command. Location \"help\" or \"help,<CommandName>\"");
-				}
-				break;
-			}
-			case TestFlight: {
-				checkArgumentsCount(1, arguments.size());
-				System.out.println("\nTesting Flight server functionality. . .");
-				System.out.println("TESTING AddFlight");
-				if(m_resourceManager.addFlight(1, 747, 50, 250)){
-					System.out.println((char)27 + "[32;1mPASSED: Flight added" + (char)27 + "[0m");
-					if(m_resourceManager.queryFlight(1, 747)==50){
-						System.out.println((char)27 + "[32;1mPASSED: Correct flight seats returned from server" + (char)27 + "[0m");
-					} else{
-						System.err.println((char)27 + "[31;1mTest failed! " + (char)27 + "Incorrect number of flight seats returned.");
-					}
-					if(m_resourceManager.queryFlightPrice(1, 747)==250){
-						System.out.println((char)27 + "[32;1mPASSED: Correct flight price returned from server" + (char)27 + "[0m");
-					} else{
-						System.err.println((char)27 + "[31;1mTest failed! " + (char)27 + "Incorrect number of flight price returned.");
-					}
-				} else {
-					System.err.println((char)27 + "[31;1mTest failed! " + (char)27 + "Server failed to add flight.");
-				}
-				System.out.println("TESTING DeleteFlight");
-				if(m_resourceManager.deleteFlight(1, 747)){
-					if(m_resourceManager.queryFlight(1, 747)==0){
-						System.out.println((char)27 + "[32;1mPASSED: Flight deleted " + (char)27 + "[0m");
-					} else{
-						System.err.println((char)27 + "[31;1mTest failed! " + (char)27 + "Server failed to delete flight.");
-					}
-				} else{
-					System.err.println((char)27 + "[31;1mTest failed! " + (char)27 + "Server failed to delete flight.");
-				}
-				break;
-			}
-			case TestCar: {
-				checkArgumentsCount(1, arguments.size());
-				System.out.println("\nTesting Car server functionality. . .");
-				System.out.println("TESTING AddCars");
-				if(m_resourceManager.addCars(1, "Montreal", 35, 25)){
-					System.out.println((char)27 + "[32;1mPASSED: Cars added" + (char)27 + "[0m");
-					if(m_resourceManager.queryCars(1, "Montreal")==35){
-						System.out.println((char)27 + "[32;1mPASSED: Correct number of cars returned from server" + (char)27 + "[0m");
-					} else{
-						System.err.println((char)27 + "[31;1mTest failed! " + (char)27 + "Incorrect number of cars returned.");
-					}
-					if(m_resourceManager.queryCarsPrice(1, "Montreal")==25){
-						System.out.println((char)27 + "[32;1mPASSED: Correct car price returned from server" + (char)27 + "[0m");
-					} else{
-						System.err.println((char)27 + "[31;1mTest failed! " + (char)27 + "Incorrect car price returned.");
-					}
-				} else {
-					System.err.println((char)27 + "[31;1mTest failed! " + (char)27 + "Server failed to add cars.");
-				}
-				System.out.println("TESTING DeleteCars");
-				if(m_resourceManager.deleteCars(1, "Montreal")){
-					if(m_resourceManager.queryCars(1, "Montreal")==0){
-						System.out.println((char)27 + "[32;1mPASSED: Cars deleted " + (char)27 + "[0m");
-					} else{
-						System.err.println((char)27 + "[31;1mTest failed! " + (char)27 + "Server failed to delete cars.");
-					}
-				} else{
-					System.err.println((char)27 + "[31;1mTest failed! " + (char)27 + "Server failed to delete cars.");
-				}
-				break;
-			}
-			case TestRoom: {
-				checkArgumentsCount(1, arguments.size());
-				System.out.println("\nTesting Room server functionality. . .");
-				System.out.println("TESTING AddRooms");
-				if(m_resourceManager.addRooms(1, "Montreal", 35, 25)){
-					System.out.println((char)27 + "[32;1mPASSED: Rooms added" + (char)27 + "[0m");
-					if(m_resourceManager.queryRooms(1, "Montreal")==35){
-						System.out.println((char)27 + "[32;1mPASSED: Correct number of rooms returned from server" + (char)27 + "[0m");
-					} else{
-						System.err.println((char)27 + "[31;1mTest failed! " + (char)27 + "Incorrect number of rooms returned.");
-					}
-					if(m_resourceManager.queryRoomsPrice(1, "Montreal")==25){
-						System.out.println((char)27 + "[32;1mPASSED: Correct room price returned from server" + (char)27 + "[0m");
-					} else{
-						System.err.println((char)27 + "[31;1mTest failed! " + (char)27 + "Incorrect room price returned.");
-					}
-				} else {
-					System.err.println((char)27 + "[31;1mTest failed! " + (char)27 + "Server failed to add rooms.");
-				}
-				System.out.println("TESTING DeleteRooms");
-				if(m_resourceManager.deleteRooms(1, "Montreal")){
-					if(m_resourceManager.queryRooms(1, "Montreal")==0){
-						System.out.println((char)27 + "[32;1mPASSED: Rooms deleted " + (char)27 + "[0m");
-					} else{
-						System.err.println((char)27 + "[31;1mTest failed! " + (char)27 + "Server failed to delete rooms.");
-					}
-				} else{
-					System.err.println((char)27 + "[31;1mTest failed! " + (char)27 + "Server failed to delete rooms.");
-				}
-				break;
-			}
-			case RunAll:{
-				checkArgumentsCount(1, arguments.size());
-
-				Vector<String> args = new Vector<String>();
-				args.add("TestArgument");
-				execute(TestCommand.TestFlight, args);
-				execute(TestCommand.TestCar, args);
-				execute(TestCommand.TestRoom, args);
-				break;
-			}
-			case Quit:
-				checkArgumentsCount(1, arguments.size());
-
-				System.out.println("Quitting client");
-				System.exit(0);
-		}
+//		switch (cmd)
+//		{
+//			case Help:
+//			{
+//				if (arguments.size() == 1) {
+//					System.out.println(TestCommand.description());
+//				} else if (arguments.size() == 2) {
+//					TestCommand l_cmd = TestCommand.fromString((String)arguments.elementAt(1));
+//					System.out.println(l_cmd.toString());
+//				} else {
+//					System.err.println((char)27 + "[31;1mCommand exception: " + (char)27 + "[0mImproper use of help command. Location \"help\" or \"help,<CommandName>\"");
+//				}
+//				break;
+//			}
+//			case TestFlight: {
+//				checkArgumentsCount(1, arguments.size());
+//				System.out.println("\nTesting Flight server functionality. . .");
+//				System.out.println("TESTING AddFlight");
+//				if(m_resourceManager.addFlight(1, 747, 50, 250)){
+//					System.out.println((char)27 + "[32;1mPASSED: Flight added" + (char)27 + "[0m");
+//					if(m_resourceManager.queryFlight(1, 747)==50){
+//						System.out.println((char)27 + "[32;1mPASSED: Correct flight seats returned from server" + (char)27 + "[0m");
+//					} else{
+//						System.err.println((char)27 + "[31;1mTest failed! " + (char)27 + "Incorrect number of flight seats returned.");
+//					}
+//					if(m_resourceManager.queryFlightPrice(1, 747)==250){
+//						System.out.println((char)27 + "[32;1mPASSED: Correct flight price returned from server" + (char)27 + "[0m");
+//					} else{
+//						System.err.println((char)27 + "[31;1mTest failed! " + (char)27 + "Incorrect number of flight price returned.");
+//					}
+//				} else {
+//					System.err.println((char)27 + "[31;1mTest failed! " + (char)27 + "Server failed to add flight.");
+//				}
+//				System.out.println("TESTING DeleteFlight");
+//				if(m_resourceManager.deleteFlight(1, 747)){
+//					if(m_resourceManager.queryFlight(1, 747)==0){
+//						System.out.println((char)27 + "[32;1mPASSED: Flight deleted " + (char)27 + "[0m");
+//					} else{
+//						System.err.println((char)27 + "[31;1mTest failed! " + (char)27 + "Server failed to delete flight.");
+//					}
+//				} else{
+//					System.err.println((char)27 + "[31;1mTest failed! " + (char)27 + "Server failed to delete flight.");
+//				}
+//				break;
+//			}
+//			case TestCar: {
+//				checkArgumentsCount(1, arguments.size());
+//				System.out.println("\nTesting Car server functionality. . .");
+//				System.out.println("TESTING AddCars");
+//				if(m_resourceManager.addCars(1, "Montreal", 35, 25)){
+//					System.out.println((char)27 + "[32;1mPASSED: Cars added" + (char)27 + "[0m");
+//					if(m_resourceManager.queryCars(1, "Montreal")==35){
+//						System.out.println((char)27 + "[32;1mPASSED: Correct number of cars returned from server" + (char)27 + "[0m");
+//					} else{
+//						System.err.println((char)27 + "[31;1mTest failed! " + (char)27 + "Incorrect number of cars returned.");
+//					}
+//					if(m_resourceManager.queryCarsPrice(1, "Montreal")==25){
+//						System.out.println((char)27 + "[32;1mPASSED: Correct car price returned from server" + (char)27 + "[0m");
+//					} else{
+//						System.err.println((char)27 + "[31;1mTest failed! " + (char)27 + "Incorrect car price returned.");
+//					}
+//				} else {
+//					System.err.println((char)27 + "[31;1mTest failed! " + (char)27 + "Server failed to add cars.");
+//				}
+//				System.out.println("TESTING DeleteCars");
+//				if(m_resourceManager.deleteCars(1, "Montreal")){
+//					if(m_resourceManager.queryCars(1, "Montreal")==0){
+//						System.out.println((char)27 + "[32;1mPASSED: Cars deleted " + (char)27 + "[0m");
+//					} else{
+//						System.err.println((char)27 + "[31;1mTest failed! " + (char)27 + "Server failed to delete cars.");
+//					}
+//				} else{
+//					System.err.println((char)27 + "[31;1mTest failed! " + (char)27 + "Server failed to delete cars.");
+//				}
+//				break;
+//			}
+//			case TestRoom: {
+//				checkArgumentsCount(1, arguments.size());
+//				System.out.println("\nTesting Room server functionality. . .");
+//				System.out.println("TESTING AddRooms");
+//				if(m_resourceManager.addRooms(1, "Montreal", 35, 25)){
+//					System.out.println((char)27 + "[32;1mPASSED: Rooms added" + (char)27 + "[0m");
+//					if(m_resourceManager.queryRooms(1, "Montreal")==35){
+//						System.out.println((char)27 + "[32;1mPASSED: Correct number of rooms returned from server" + (char)27 + "[0m");
+//					} else{
+//						System.err.println((char)27 + "[31;1mTest failed! " + (char)27 + "Incorrect number of rooms returned.");
+//					}
+//					if(m_resourceManager.queryRoomsPrice(1, "Montreal")==25){
+//						System.out.println((char)27 + "[32;1mPASSED: Correct room price returned from server" + (char)27 + "[0m");
+//					} else{
+//						System.err.println((char)27 + "[31;1mTest failed! " + (char)27 + "Incorrect room price returned.");
+//					}
+//				} else {
+//					System.err.println((char)27 + "[31;1mTest failed! " + (char)27 + "Server failed to add rooms.");
+//				}
+//				System.out.println("TESTING DeleteRooms");
+//				if(m_resourceManager.deleteRooms(1, "Montreal")){
+//					if(m_resourceManager.queryRooms(1, "Montreal")==0){
+//						System.out.println((char)27 + "[32;1mPASSED: Rooms deleted " + (char)27 + "[0m");
+//					} else{
+//						System.err.println((char)27 + "[31;1mTest failed! " + (char)27 + "Server failed to delete rooms.");
+//					}
+//				} else{
+//					System.err.println((char)27 + "[31;1mTest failed! " + (char)27 + "Server failed to delete rooms.");
+//				}
+//				break;
+//			}
+//			case RunAll:{
+//				checkArgumentsCount(1, arguments.size());
+//
+//				Vector<String> args = new Vector<String>();
+//				args.add("TestArgument");
+//				execute(TestCommand.TestFlight, args);
+//				execute(TestCommand.TestCar, args);
+//				execute(TestCommand.TestRoom, args);
+//				break;
+//			}
+//			case Quit:
+//				checkArgumentsCount(1, arguments.size());
+//
+//				System.out.println("Quitting client");
+//				System.exit(0);
+//		}
 	}
 
 	public static Vector<String> parse(String command)

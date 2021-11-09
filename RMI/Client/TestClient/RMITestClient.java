@@ -52,9 +52,9 @@ public class RMITestClient extends Client implements Runnable
 				long[] responseTime_list;
 				long total_response_time = 0; //for each transaction
 				if(this.runMode == 1){
-					responseTime_list = oneRM();
+					responseTime_list = oneRM(i + getCurrThreadID()*200);
 				}else{ //runMode == 2, many resourceManagers
-					responseTime_list = threeRMs();
+					responseTime_list = threeRMs(i + getCurrThreadID()*200);
 				}
 				total_response_time = responseTime_list[0];
 
@@ -73,7 +73,7 @@ public class RMITestClient extends Client implements Runnable
 	}
 	//TODO: finish these helper methods
 	//Returns:{TotalResponseTime, ClientTime, DBTime, MDWTime, RMTime, CommunicationTime}
-	private long[] oneRM() throws Exception{
+	private long[] oneRM(int i) throws Exception{
 		long startTime = System.currentTimeMillis();
 		RMITestClient c = this;
 
@@ -82,45 +82,45 @@ public class RMITestClient extends Client implements Runnable
 
 		Vector<String> add1 = new Vector<String>(4);
 		add1.add(Integer.toString(xid));
-		add1.add("Montreal");
-		add1.add(Integer.toString(50));
-		add1.add(Integer.toString(100));
+		add1.add("Montreal" + i);
+		add1.add(Integer.toString(50+i));
+		add1.add(Integer.toString(100+i));
 
 		Vector<String> qc1 = new Vector<String>(2);
 		qc1.add(Integer.toString(xid));
-		qc1.add("Montreal");
+		qc1.add("Montreal" + i);
 
 		Vector<String> qcp1 = new Vector<String>(2);
 		qcp1.add(Integer.toString(xid));
-		qcp1.add("Montreal");
+		qcp1.add("Montreal" + i);
 
 		Vector<String> add2 = new Vector<String>(4);
 		add2.add(Integer.toString(xid));
-		add2.add("Toronto");
-		add2.add(Integer.toString(50));
-		add2.add(Integer.toString(200));
+		add2.add("Toronto" + i);
+		add2.add(Integer.toString(50 + i));
+		add2.add(Integer.toString(200 + i));
 
 		Vector<String> qc2 = new Vector<String>(2);
 		qc2.add(Integer.toString(xid));
-		qc2.add("Toronto");
+		qc2.add("Toronto" + i);
 
 		Vector<String> qcp2 = new Vector<String>(2);
 		qcp2.add(Integer.toString(xid));
-		qcp2.add("Toronto");
+		qcp2.add("Toronto" + i);
 
 		Vector<String> add3 = new Vector<String>(4);
 		add3.add(Integer.toString(xid));
-		add3.add("Vancouver");
-		add3.add(Integer.toString(50));
-		add3.add(Integer.toString(300));
+		add3.add("Vancouver" + i);
+		add3.add(Integer.toString(50 + i));
+		add3.add(Integer.toString(300 + i));
 
 		Vector<String> qc3 = new Vector<String>(2);
 		qc3.add(Integer.toString(xid));
-		qc3.add("Vancouver");
+		qc3.add("Vancouver" + i);
 
 		Vector<String> qcp3 = new Vector<String>(2);
 		qcp3.add(Integer.toString(xid));
-		qcp3.add("Vancouver");
+		qcp3.add("Vancouver" + i);
 
 		long[] comm1 = c.execute(Command.AddCars, add1);
 		long[] comm2 = c.execute(Command.QueryCars, qc1);
@@ -147,10 +147,78 @@ public class RMITestClient extends Client implements Runnable
 		return new long[] {total_responseTime, clientTime, DBTime, MDWTime, RMTime, communicateTime};
 	}
 
-	private long[] threeRMs() throws Exception{
-		long[] response_times = new long[3];
+	private long[] threeRMs(int i) throws Exception{
+		long startTime = System.currentTimeMillis();
+		RMITestClient c = this;
 
-		return response_times;
+		long[] startMid = c.execute(Command.Start, null);
+		int xid = (int) startMid[0]; //transaction id
+		//flights
+		Vector<String> add1 = new Vector<String>(4);
+		add1.add(Integer.toString(xid));
+		add1.add(Integer.toString(i)); //flight number
+		add1.add(Integer.toString(200+i)); //num_seats
+		add1.add(Integer.toString(300+i)); //price_seat
+
+		Vector<String> qc1 = new Vector<String>(2);
+		qc1.add(Integer.toString(xid));
+		qc1.add(Integer.toString(i)); //flight number
+
+		Vector<String> qcp1 = new Vector<String>(2);
+		qcp1.add(Integer.toString(xid));
+		qcp1.add(Integer.toString(i));
+		//cars
+		Vector<String> add2 = new Vector<String>(4);
+		add2.add(Integer.toString(xid));
+		add2.add("Calgary" + i);
+		add2.add(Integer.toString(50 + i));
+		add2.add(Integer.toString(200 + i));
+
+		Vector<String> qc2 = new Vector<String>(2);
+		qc2.add(Integer.toString(xid));
+		qc2.add("Calgary" + i);
+
+		Vector<String> qcp2 = new Vector<String>(2);
+		qcp2.add(Integer.toString(xid));
+		qcp2.add("Calgary" + i);
+		//rooms
+		Vector<String> add3 = new Vector<String>(4);
+		add3.add(Integer.toString(xid));
+		add3.add("Ottawa" + i);
+		add3.add(Integer.toString(100 + i));
+		add3.add(Integer.toString(200 + i));
+
+		Vector<String> qc3 = new Vector<String>(2);
+		qc3.add(Integer.toString(xid));
+		qc3.add("Ottawa" + i);
+
+		Vector<String> qcp3 = new Vector<String>(2);
+		qcp3.add(Integer.toString(xid));
+		qcp3.add("Ottawa" + i);
+
+		long[] comm1 = c.execute(Command.AddFlight, add1);
+		long[] comm2 = c.execute(Command.QueryFlight, qc1);
+		long[] comm3 = c.execute(Command.QueryFlightPrice, qcp1);
+
+		long[] comm4 = c.execute(Command.AddCars, add2);
+		long[] comm5 = c.execute(Command.QueryCars, qc2);
+		long[] comm6 = c.execute(Command.QueryCarsPrice, qcp2);
+
+		long[] comm7 = c.execute(Command.AddRooms, add3);
+		long[] comm8 = c.execute(Command.QueryRooms, qc3);
+		long[] comm9 = c.execute(Command.QueryRoomsPrice, qcp3);
+
+		long[] commit = c.execute(Command.Commit, null);
+
+		long total_responseTime = System.currentTimeMillis() - startTime; //transaction time
+		long clientTime = startMid[6] + comm1[6] + comm2[6] + comm3[6] + comm4[6] + comm5[6] + comm6[6] + comm7[6] + comm8[6] + comm9[6] + commit[6];
+		long DBTime = startMid[1] + comm1[1] + comm2[1] + comm3[1] + comm4[1] + comm5[1] + comm6[1] + comm7[1] + comm8[1] + comm9[1] + commit[1];
+		long MDWTime = startMid[4] + comm1[4] + comm2[4] + comm3[4] + comm4[4] + comm5[4] + comm6[4] + comm7[4] + comm8[4] + comm9[4] + commit[4];
+		long RMTime = startMid[2] + comm1[2] + comm2[2] + comm3[2] + comm4[2] + comm5[2] + comm6[2] + comm7[2] + comm8[2] + comm9[2] + commit[2];
+		long communicateTime = startMid[5] + comm1[5] + comm2[5] + comm3[5] + comm4[5] + comm5[5] + comm6[5] + comm7[5] + comm8[5] + comm9[5] + commit[5]
+				- MDWTime - RMTime - DBTime;
+
+		return new long[] {total_responseTime, clientTime, DBTime, MDWTime, RMTime, communicateTime};
 	}
 
 	public static void main(String args[])
@@ -206,17 +274,17 @@ public class RMITestClient extends Client implements Runnable
 			}
 			System.out.println("ANALYZING DATA: \n\n");
 			//TODO: below not sure if completely correct, subject to return
-//			for (int i = 0; i < num_clients; i++) {
-//				for (int j = 0; j < clients[i].results.length; j++) {
-//					for (int k = 0; k < clients[i].results[j].length; k++) {
-//						System.out.print(clients[i].results[j][k]);
-//						if (k != clients[i].results[j].length - 1)
-//							System.out.print(",");
-//					}
-//					System.out.println();
-//				}
-//				System.out.println();
-//			}
+			for (int i = 0; i < num_clients; i++) {
+				for (int j = 0; j < clients[i].results.length; j++) {
+					for (int k = 0; k < clients[i].results[j].length; k++) {
+						System.out.print(clients[i].results[j][k]);
+						if (k != clients[i].results[j].length - 1)
+							System.out.print(",");
+					}
+					System.out.println();
+				}
+				System.out.println();
+			}
 		} 
 		catch (Exception e) {    
 			System.err.println((char)27 + "[31;1mClient exception: " + (char)27 + "[0mUncaught exception");
