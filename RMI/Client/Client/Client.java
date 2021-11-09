@@ -72,7 +72,7 @@ public abstract class Client
 		}
 	}
 
-	public void execute(Command cmd, Vector<String> arguments)
+	public long[] execute(Command cmd, Vector<String> arguments)
 			throws RemoteException, NumberFormatException, InvalidTransactionException, TransactionAbortedException {
 		switch (cmd)
 		{
@@ -86,7 +86,7 @@ public abstract class Client
 				} else {
 					System.err.println((char)27 + "[31;1mCommand exception: " + (char)27 + "[0mImproper use of help command. Location \"help\" or \"help,<CommandName>\"");
 				}
-				break;
+				return null;
 			}
 			case AddFlight: {
 				checkArgumentsCount(5, arguments.size());
@@ -106,7 +106,7 @@ public abstract class Client
 				} else {
 					System.out.println("Flight could not be added");
 				}
-				break;
+				return null;
 			}
 			case AddCars: {
 				checkArgumentsCount(5, arguments.size());
@@ -126,7 +126,7 @@ public abstract class Client
 				} else {
 					System.out.println("Cars could not be added");
 				}
-				break;
+				return null;
 			}
 			case AddRooms: {
 				checkArgumentsCount(5, arguments.size());
@@ -146,7 +146,7 @@ public abstract class Client
 				} else {
 					System.out.println("Rooms could not be added");
 				}
-				break;
+				return null;
 			}
 			case AddCustomer: {
 				checkArgumentsCount(2, arguments.size());
@@ -157,7 +157,7 @@ public abstract class Client
 				int customer = m_resourceManager.newCustomer(id);
 
 				System.out.println("Add customer ID: " + customer);
-				break;
+				return null;
 			}
 			case AddCustomerID: {
 				checkArgumentsCount(3, arguments.size());
@@ -173,7 +173,7 @@ public abstract class Client
 				} else {
 					System.out.println("Customer could not be added");
 				}
-				break;
+				return null;
 			}
 			case DeleteFlight: {
 				checkArgumentsCount(3, arguments.size());
@@ -189,7 +189,7 @@ public abstract class Client
 				} else {
 					System.out.println("Flight could not be deleted");
 				}
-				break;
+				return null;
 			}
 			case DeleteCars: {
 				checkArgumentsCount(3, arguments.size());
@@ -205,7 +205,7 @@ public abstract class Client
 				} else {
 					System.out.println("Cars could not be deleted");
 				}
-				break;
+				return null;
 			}
 			case DeleteRooms: {
 				checkArgumentsCount(3, arguments.size());
@@ -221,7 +221,7 @@ public abstract class Client
 				} else {
 					System.out.println("Rooms could not be deleted");
 				}
-				break;
+				return null;
 			}
 			case DeleteCustomer: {
 				checkArgumentsCount(3, arguments.size());
@@ -237,7 +237,7 @@ public abstract class Client
 				} else {
 					System.out.println("Customer could not be deleted");
 				}
-				break;
+				return null;
 			}
 			case QueryFlight: {
 				checkArgumentsCount(3, arguments.size());
@@ -250,7 +250,7 @@ public abstract class Client
 
 				int seats = m_resourceManager.queryFlight(id, flightNum);
 				System.out.println("Number of seats available: " + seats);
-				break;
+				//TODO: implement timer
 			}
 			case QueryCars: {
 				checkArgumentsCount(3, arguments.size());
@@ -263,7 +263,7 @@ public abstract class Client
 
 				int numCars = m_resourceManager.queryCars(id, location);
 				System.out.println("Number of cars at this location: " + numCars);
-				break;
+				//TODO: implement timer
 			}
 			case QueryRooms: {
 				checkArgumentsCount(3, arguments.size());
@@ -276,7 +276,7 @@ public abstract class Client
 
 				int numRoom = m_resourceManager.queryRooms(id, location);
 				System.out.println("Number of rooms at this location: " + numRoom);
-				break;
+				//TODO: implement timer
 			}
 			case QueryCustomer: {
 				checkArgumentsCount(3, arguments.size());
@@ -289,7 +289,7 @@ public abstract class Client
 
 				String bill = m_resourceManager.queryCustomerInfo(id, customerID);
 				System.out.print(bill);
-				break;               
+				return null;
 			}
 			case QueryFlightPrice: {
 				checkArgumentsCount(3, arguments.size());
@@ -302,7 +302,7 @@ public abstract class Client
 
 				int price = m_resourceManager.queryFlightPrice(id, flightNum);
 				System.out.println("Price of a seat: " + price);
-				break;
+				return null;
 			}
 			case QueryCarsPrice: {
 				checkArgumentsCount(3, arguments.size());
@@ -315,7 +315,7 @@ public abstract class Client
 
 				int price = m_resourceManager.queryCarsPrice(id, location);
 				System.out.println("Price of cars at this location: " + price);
-				break;
+				//TODO: implement timer
 			}
 			case QueryRoomsPrice: {
 				checkArgumentsCount(3, arguments.size());
@@ -328,7 +328,7 @@ public abstract class Client
 
 				int price = m_resourceManager.queryRoomsPrice(id, location);
 				System.out.println("Price of rooms at this location: " + price);
-				break;
+				return null;
 			}
 			case ReserveFlight: {
 				checkArgumentsCount(4, arguments.size());
@@ -346,7 +346,7 @@ public abstract class Client
 				} else {
 					System.out.println("Flight could not be reserved");
 				}
-				break;
+				return null;
 			}
 			case ReserveCar: {
 				checkArgumentsCount(4, arguments.size());
@@ -364,7 +364,7 @@ public abstract class Client
 				} else {
 					System.out.println("Car could not be reserved");
 				}
-				break;
+				//TODO: implement timer
 			}
 			case ReserveRoom: {
 				checkArgumentsCount(4, arguments.size());
@@ -382,7 +382,7 @@ public abstract class Client
 				} else {
 					System.out.println("Room could not be reserved");
 				}
-				break;
+				return null;
 			}
 			case Bundle: {
 				if (arguments.size() < 7) {
@@ -416,16 +416,19 @@ public abstract class Client
 				} else {
 					System.out.println("Bundle could not be reserved");
 				}
-				break;
+				return null;
 			}
-			case Start: {
+			case Start: {//returns {xid, response time}
+				long startTime = System.currentTimeMillis();
 				checkArgumentsCount(1, arguments.size());
 				System.out.println("Starting transaction - awaiting transaction xid");
 				int xid = m_resourceManager.start();
 				System.out.println("Transaction started with xid: " + xid);
-				break;
+				//TODO: implement timer
+				return new long[] {xid, System.currentTimeMillis()-startTime};
 			}
 			case Commit: {
+				long startTime = System.currentTimeMillis();
 				checkArgumentsCount(2, arguments.size());
 				int xid = toInt(arguments.elementAt(1));
 				System.out.println("Committing transaction xid: " + xid);
@@ -437,7 +440,7 @@ public abstract class Client
 					System.out.println(xid + " failed to commit");
 				}
 
-				break;
+				//TODO: implement timer
 			}
 			case Abort: {
 				checkArgumentsCount(2, arguments.size());
@@ -445,7 +448,7 @@ public abstract class Client
 				System.out.println("Aborting transaction xid: " + xid);
 				m_resourceManager.abort(xid);
 				System.out.println("Transaction aborted");
-				break;
+				return null;
 			}
 			case Shutdown: {
 				checkArgumentsCount(1, arguments.size());
@@ -455,7 +458,7 @@ public abstract class Client
 				} catch (ConnectException|UnmarshalException e){
 					System.out.println("All servers shut down successfully");
 				}
-				break;
+				return null;
 			}
 			case Quit:
 				checkArgumentsCount(1, arguments.size());
@@ -463,6 +466,7 @@ public abstract class Client
 				System.out.println("Quitting client");
 				System.exit(0);
 		}
+		return null;
 	}
 
 	public static Vector<String> parse(String command)

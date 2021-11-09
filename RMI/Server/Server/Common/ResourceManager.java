@@ -281,8 +281,8 @@ public class ResourceManager implements IRemoteResourceManager
 	}
 
 	// Returns room price at this location
-	public int queryRoomsPrice(int xid, String location) throws RemoteException, InvalidTransactionException {
-		return queryPrice(xid, Room.getKey(location));
+	public long[] queryRoomsPrice(int xid, String location) throws RemoteException, InvalidTransactionException {
+		return new long[] {queryPrice(xid, Room.getKey(location)), };
 	}
 
 	public String queryCustomerInfo(int xid, int customerID) throws RemoteException, InvalidTransactionException {
