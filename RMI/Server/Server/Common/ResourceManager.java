@@ -261,8 +261,9 @@ public class ResourceManager implements IRemoteResourceManager
 	}
 
 	// Returns the number of cars available at a location
-	public int queryCars(int xid, String location) throws RemoteException, InvalidTransactionException {
-		return queryNum(xid, Car.getKey(location));
+	public long[] queryCars(int xid, String location) throws RemoteException, InvalidTransactionException {
+		long startTime = System.currentTimeMillis();
+		return new long[] {queryNum(xid, Car.getKey(location)), System.currentTimeMillis()-startTime};
 	}
 
 	// Returns the amount of rooms available at a location
@@ -271,18 +272,21 @@ public class ResourceManager implements IRemoteResourceManager
 	}
 
 	// Returns price of a seat in this flight
-	public int queryFlightPrice(int xid, int flightNum) throws RemoteException, InvalidTransactionException {
-		return queryPrice(xid, Flight.getKey(flightNum));
+	public long[] queryFlightPrice(int xid, int flightNum) throws RemoteException, InvalidTransactionException {
+		long startTime = System.currentTimeMillis();
+		return new long[] {queryPrice(xid, Flight.getKey(flightNum)), System.currentTimeMillis()-startTime};
 	}
 
 	// Returns price of cars at this location
-	public int queryCarsPrice(int xid, String location) throws RemoteException, InvalidTransactionException {
-		return queryPrice(xid, Car.getKey(location));
+	public long[] queryCarsPrice(int xid, String location) throws RemoteException, InvalidTransactionException {
+		long startTime = System.currentTimeMillis();
+		return new long[] {queryPrice(xid, Car.getKey(location)), System.currentTimeMillis()-startTime};
 	}
 
 	// Returns room price at this location
 	public long[] queryRoomsPrice(int xid, String location) throws RemoteException, InvalidTransactionException {
-		return new long[] {queryPrice(xid, Room.getKey(location)), };
+		long startTime = System.currentTimeMillis();
+		return new long[] {queryPrice(xid, Room.getKey(location)), System.currentTimeMillis()-startTime};
 	}
 
 	public String queryCustomerInfo(int xid, int customerID) throws RemoteException, InvalidTransactionException {
@@ -367,8 +371,9 @@ public class ResourceManager implements IRemoteResourceManager
 	}
 
 	// Adds car reservation to this customer
-	public boolean reserveCar(int xid, int customerID, String location) throws RemoteException, InvalidTransactionException {
-		return reserveItem(xid, customerID, Car.getKey(location), location);
+	public long[] reserveCar(int xid, int customerID, String location) throws RemoteException, InvalidTransactionException {
+		long startTime = System.currentTimeMillis();
+		return new long[] {reserveItem(xid, customerID, Car.getKey(location), location)?1:0, System.currentTimeMillis()-startTime};
 	}
 
 	// Adds room reservation to this customer

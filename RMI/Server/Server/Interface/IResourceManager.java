@@ -129,7 +129,7 @@ public interface IResourceManager extends Remote
      *
      * @return Number of available cars at this location
      */
-    public int queryCars(int id, String location)
+    public long[] queryCars(int id, String location)
             throws RemoteException, InvalidTransactionException, TransactionAbortedException;
 
     /**
@@ -153,7 +153,7 @@ public interface IResourceManager extends Remote
      *
      * @return Price of a seat in this flight
      */
-    public int queryFlightPrice(int id, int flightNumber)
+    public long[] queryFlightPrice(int id, int flightNumber)
             throws RemoteException, InvalidTransactionException, TransactionAbortedException;
 
     /**
@@ -161,7 +161,7 @@ public interface IResourceManager extends Remote
      *
      * @return Price of car
      */
-    public int queryCarsPrice(int id, String location)
+    public long[] queryCarsPrice(int id, String location)
             throws RemoteException, InvalidTransactionException, TransactionAbortedException;
 
     /**
@@ -169,7 +169,7 @@ public interface IResourceManager extends Remote
      *
      * @return Price of a room
      */
-    public int queryRoomsPrice(int id, String location)
+    public long[] queryRoomsPrice(int id, String location)
             throws RemoteException, InvalidTransactionException, TransactionAbortedException;
 
     /**
@@ -185,7 +185,7 @@ public interface IResourceManager extends Remote
      *
      * @return Success
      */
-    public boolean reserveCar(int id, int customerID, String location)
+    public long[] reserveCar(int id, int customerID, String location)
             throws RemoteException, InvalidTransactionException, TransactionAbortedException;
 
     /**

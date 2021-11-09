@@ -418,7 +418,7 @@ public class MiddlewareResourceManager implements IResourceManager
 
 	// IMPLEMENTED
 	// ***********
-	public int queryCarsPrice(int xid, String location) throws RemoteException, InvalidTransactionException, TransactionAbortedException {
+	public long[] queryCarsPrice(int xid, String location) throws RemoteException, InvalidTransactionException, TransactionAbortedException {
 		p.printIntro(xid, "queryCarsPrice");
 
 		p.printValidation(xid);
