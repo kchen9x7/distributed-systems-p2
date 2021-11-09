@@ -19,6 +19,7 @@ public class ResourceManager implements IRemoteResourceManager
 	protected String m_name = "";
 	protected RMHashMap m_data = new RMHashMap();
 	private TransactionManager localTransactionManager = null;
+	HashMap<Integer,Long> DBTimes = new HashMap<Integer,Long>();
 
 	public ResourceManager(String p_name)
 	{
@@ -192,7 +193,7 @@ public class ResourceManager implements IRemoteResourceManager
 
 	// Create a new car location or add cars to an existing location
 	// NOTE: if price <= 0 and the location already exists, it maintains its current price
-	// returns {1L,RMACTime}
+	// returns {1L,DBACTime,RMACTime}
 	public long[] addCars(int xid, String location, int count, int price) throws RemoteException, InvalidTransactionException {
 		long startTime = System.currentTimeMillis();
 		Trace.info("RM::addCars(" + xid + ", " + location + ", " + count + ", $" + price + ") called");
@@ -201,6 +202,7 @@ public class ResourceManager implements IRemoteResourceManager
 		{
 			// Car location doesn't exist yet, add it
 			Car newObj = new Car(location, count, price);
+
 			writeData(xid, newObj.getKey(), newObj);
 			Trace.info("RM::addCars(" + xid + ") created new location " + location + ", count=" + count + ", price=$" + price);
 		}
