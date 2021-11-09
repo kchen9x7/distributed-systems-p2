@@ -51,14 +51,18 @@ public abstract class Client
 				try {
 					long[] results = execute(cmd, arguments);
 					if(results!=null){
-						System.out.println(results.toString());
+						for(int i = 0; i < results.length; i++){
+							System.out.println(results[i]);
+						}
 					}
 				}
 				catch (ConnectException e) {
 					connectServer();
 					long[] results = execute(cmd, arguments);
 					if(results!=null){
-						System.out.println(results.toString());
+						for(int i = 0; i < results.length; i++){
+							System.out.println(results[i]);
+						}
 					}
 				}
 			}
