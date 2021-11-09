@@ -225,9 +225,9 @@ public interface IResourceManager extends Remote
      *
      * @return new xid
      */
-    public int start() throws RemoteException;
+    public long[] start() throws RemoteException;
 
-    public boolean commit(int xid) throws RemoteException,
+    public long[] commit(int xid) throws RemoteException,
             TransactionAbortedException, InvalidTransactionException;
 
     /**

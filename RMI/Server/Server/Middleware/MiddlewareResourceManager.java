@@ -316,7 +316,9 @@ public class MiddlewareResourceManager implements IResourceManager
 	}
 	// IMPLEMENTED
 	// ***********
-	public int queryCars(int xid, String location) throws RemoteException, InvalidTransactionException, TransactionAbortedException {
+	// returns {value,RMQueryCarsTime,MDWQueryCarsTime}
+	public long[] queryCars(int xid, String location) throws RemoteException, InvalidTransactionException, TransactionAbortedException {
+		long startTime = System.currentTimeMillis();
 		p.printIntro(xid, "queryCars");
 
 		p.printValidation(xid);
@@ -327,9 +329,9 @@ public class MiddlewareResourceManager implements IResourceManager
 		addResourceManager(xid, ResourceManagerEnum.Car);
 
 		p.printForwarding(xid, ResourceManagerEnum.Car);
-		int value = carResourceManager.queryCars(xid, location);
+		long[] results = carResourceManager.queryCars(xid, location);
         Trace.info("Car server response sending back to Client.");
-		return value;
+		return new long[] {results[0],results[1],System.currentTimeMillis()-startTime};
 	}
 
 	// IMPLEMENTED
@@ -400,7 +402,9 @@ public class MiddlewareResourceManager implements IResourceManager
 
 	// IMPLEMENTED
 	// ***********
-	public int queryFlightPrice(int xid, int flightNum) throws RemoteException, InvalidTransactionException, TransactionAbortedException {
+	// returns {value,RMQueryFlightsPriceTime,MDWQueryFlightsPriceTime}
+	public long[] queryFlightPrice(int xid, int flightNum) throws RemoteException, InvalidTransactionException, TransactionAbortedException {
+		long startTime = System.currentTimeMillis();
 		p.printIntro(xid, "queryFlightPrice");
 
 		p.printValidation(xid);
@@ -411,14 +415,16 @@ public class MiddlewareResourceManager implements IResourceManager
 		addResourceManager(xid, ResourceManagerEnum.Flight);
 
 		p.printForwarding(xid, ResourceManagerEnum.Flight);
-		int value = flightResourceManager.queryFlightPrice(xid, flightNum);
+		long[] results =flightResourceManager.queryFlightPrice(xid, flightNum);
         Trace.info("Flight server response sending back to Client.");
-		return value;
+		return new long[] {results[0],results[1], System.currentTimeMillis()-startTime};
 	}
 
 	// IMPLEMENTED
 	// ***********
+	// returns {value,RMQueryCarsPriceTime,MDWQueryCarsPriceTime}
 	public long[] queryCarsPrice(int xid, String location) throws RemoteException, InvalidTransactionException, TransactionAbortedException {
+		long startTime = System.currentTimeMillis();
 		p.printIntro(xid, "queryCarsPrice");
 
 		p.printValidation(xid);
@@ -429,14 +435,16 @@ public class MiddlewareResourceManager implements IResourceManager
 		addResourceManager(xid, ResourceManagerEnum.Car);
 
 		p.printForwarding(xid, ResourceManagerEnum.Car);
-		int value = carResourceManager.queryCarsPrice(xid, location);
+		long[] results = carResourceManager.queryCarsPrice(xid, location);
         Trace.info("Car server response sending back to Client.");
-		return value;
+		return new long[] {results[0],results[1], System.currentTimeMillis()-startTime};
 	}
 
 	// IMPLEMENTED
 	// ***********
-	public int queryRoomsPrice(int xid, String location) throws RemoteException, InvalidTransactionException, TransactionAbortedException {
+	// returns {value,RMQueryRoomsPriceTime,MDWQueryRoomsPriceTime}
+	public long[] queryRoomsPrice(int xid, String location) throws RemoteException, InvalidTransactionException, TransactionAbortedException {
+		long startTime = System.currentTimeMillis();
 		p.printIntro(xid, "queryRoomsPrice");
 
 		p.printValidation(xid);
@@ -447,9 +455,9 @@ public class MiddlewareResourceManager implements IResourceManager
 		addResourceManager(xid, ResourceManagerEnum.Room);
 
 		p.printForwarding(xid, ResourceManagerEnum.Room);
-		int value = roomResourceManager.queryRoomsPrice(xid, location);
-        Trace.info("Room server response sending back to Client.");
-		return value;
+		long[] results = roomResourceManager.queryRoomsPrice(xid, location);
+		Trace.info("Room server response sending back to Client.");
+		return new long[] {results[0],results[1],System.currentTimeMillis()-startTime};
 	}
 
 	// IMPLEMENTED
@@ -477,7 +485,9 @@ public class MiddlewareResourceManager implements IResourceManager
 
 	// IMPLEMENTED
 	// ***********
-	public boolean reserveCar(int xid, int customerID, String location) throws RemoteException, InvalidTransactionException, TransactionAbortedException {
+	// returns {(0L|1L), RMReserveCarTime, MDWReserveCarTime}, 0L=false 1L=true
+	public long[] reserveCar(int xid, int customerID, String location) throws RemoteException, InvalidTransactionException, TransactionAbortedException {
+		long startTime = System.currentTimeMillis();
 		p.printIntro(xid, "reserveCar");
 
 		p.printValidation(xid);
@@ -489,13 +499,13 @@ public class MiddlewareResourceManager implements IResourceManager
 		addResourceManager(xid, ResourceManagerEnum.Customer);
 
 		p.printForwarding(xid, ResourceManagerEnum.Car);
-		if(carResourceManager.reserveCar(xid, customerID, location)){
+		long[] results = carResourceManager.reserveCar(xid, customerID, location);//resourceManager.reserveCar returns {(0|1),time}
+		if((int) results[0] == 1){
 			Trace.info("Car server completed request successfully!");
-			return true;
 		} else{
 			Trace.info("Car server failed to complete request.");
-            return false;
 		}
+		return new long[] {results[0],results[1], System.currentTimeMillis()-startTime};
 	}
 
 	// IMPLEMENTED
@@ -535,7 +545,7 @@ public class MiddlewareResourceManager implements IResourceManager
 
 		if(car){
 			expectedFailureCount++;
-			if(!carResourceManager.reserveCar(xid, customerId, location)) {
+			if(!((int) carResourceManager.reserveCar(xid, customerId, location)[0] == 1)) {
 				failureCount++;
 			}
 		}
@@ -555,10 +565,12 @@ public class MiddlewareResourceManager implements IResourceManager
 	}
 
 
-	public int start() throws RemoteException {
+	//returns {xid,MDWStTime}
+	public long[] start() throws RemoteException {
+		long startTime = System.currentTimeMillis();
 		int xid  = transactionManager.initiateTransaction();
 		p.printStart(xid);
-		return xid;
+		return new long[] {xid,System.currentTimeMillis()-startTime};
 	}
 
 	public void abort(int xid) throws RemoteException, InvalidTransactionException {
@@ -651,8 +663,11 @@ public class MiddlewareResourceManager implements IResourceManager
 		}
 	}
 
-	public boolean commit(int xid)
+
+	// returns {(0|1),ResourceManagerCommitTime,MiddleWareCommitTime}, 0=false 1=true
+	public long[] commit(int xid)
 			throws RemoteException, TransactionAbortedException, InvalidTransactionException {
+		long startTime = System.currentTimeMillis();
 		p.printCommit(xid);
 
 		validateTransaction(xid);
@@ -665,30 +680,35 @@ public class MiddlewareResourceManager implements IResourceManager
 		boolean isFlightCommitted = false;
 		boolean isCarCommitted = false;
 		boolean isRoomCommitted = false;
+		long[] RMResults = new long[6];
 
 		if (resourceManagers.contains(ResourceManagerEnum.Flight)) {
-			flightResourceManager.commit(xid);
+			RMResults[0] = flightResourceManager.commit(xid)[1];
 			isFlightCommitted = true;
 		}
 		if (resourceManagers.contains(ResourceManagerEnum.Car)){
-			carResourceManager.commit(xid);
+			RMResults[1] = carResourceManager.commit(xid)[1];
 			isCarCommitted = true;
 		}
 		if (resourceManagers.contains(ResourceManagerEnum.Room)){
-			roomResourceManager.commit(xid);
+			RMResults[2] = roomResourceManager.commit(xid)[1];
 			isRoomCommitted = true;
 		}
 		if (resourceManagers.contains(ResourceManagerEnum.Customer)){
 			// replicate commit on all remote servers.
 			if(!isFlightCommitted){
-				flightResourceManager.commit(xid);
+				RMResults[3] = flightResourceManager.commit(xid)[1];
 			}
 			if(!isCarCommitted){
-				carResourceManager.commit(xid);
+				RMResults[4] = carResourceManager.commit(xid)[1];
 			}
 			if(!isRoomCommitted){
-				roomResourceManager.commit(xid);
+				RMResults[5] = roomResourceManager.commit(xid)[1];
 			}
+		}
+		long RMTime = 0L;
+		for(int i = 0; i < 6; i++){
+			RMTime += RMResults[i];
 		}
 
 		transactionManager.nullifyOngoingTransaction(xid);
@@ -696,7 +716,7 @@ public class MiddlewareResourceManager implements IResourceManager
 		transactionManager.addToDeadTransactions(t);
 		lockManager.UnlockAll(xid);
 
-		return true;
+		return new long[] {1L,RMTime,System.currentTimeMillis()-startTime};
 	}
 
 	public boolean shutdown() throws RemoteException{

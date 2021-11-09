@@ -250,9 +250,13 @@ public abstract class Client
 
 				int seats = m_resourceManager.queryFlight(id, flightNum);
 				System.out.println("Number of seats available: " + seats);
-				//TODO: implement timer
+				return null;
 			}
 			case QueryCars: {
+				//*****************************************************
+				//Returns {numCars,RMQCTime,MDWQCTime,ClientQCTime}
+				//*****************************************************
+				long startTime = System.currentTimeMillis();
 				checkArgumentsCount(3, arguments.size());
 
 				System.out.println("Querying cars location [xid=" + arguments.elementAt(1) + "]");
@@ -261,9 +265,10 @@ public abstract class Client
 				int id = toInt(arguments.elementAt(1));
 				String location = arguments.elementAt(2);
 
-				int numCars = m_resourceManager.queryCars(id, location);
+				long[] results = m_resourceManager.queryCars(id, location);
+				int numCars = (int) results[0];
 				System.out.println("Number of cars at this location: " + numCars);
-				//TODO: implement timer
+				return new long[] {results[0],results[1],results[2],System.currentTimeMillis()-startTime};
 			}
 			case QueryRooms: {
 				checkArgumentsCount(3, arguments.size());
@@ -276,7 +281,7 @@ public abstract class Client
 
 				int numRoom = m_resourceManager.queryRooms(id, location);
 				System.out.println("Number of rooms at this location: " + numRoom);
-				//TODO: implement timer
+				return null;
 			}
 			case QueryCustomer: {
 				checkArgumentsCount(3, arguments.size());
@@ -292,6 +297,10 @@ public abstract class Client
 				return null;
 			}
 			case QueryFlightPrice: {
+				//*****************************************************
+				//Returns {price,RMQFPTime,MDWQFPTime,ClientQFPTime}
+				//*****************************************************
+				long startTime = System.currentTimeMillis();
 				checkArgumentsCount(3, arguments.size());
 				
 				System.out.println("Querying a flight price [xid=" + arguments.elementAt(1) + "]");
@@ -299,12 +308,16 @@ public abstract class Client
 
 				int id = toInt(arguments.elementAt(1));
 				int flightNum = toInt(arguments.elementAt(2));
-
-				int price = m_resourceManager.queryFlightPrice(id, flightNum);
+				long[] results = m_resourceManager.queryFlightPrice(id, flightNum);
+				int price = (int) results[0];
 				System.out.println("Price of a seat: " + price);
-				return null;
+				return new long[] {results[0],results[1],results[2],System.currentTimeMillis()-startTime};
 			}
 			case QueryCarsPrice: {
+				//*****************************************************
+				//Returns {price,RMQCPTime,MDWQCPTime,ClientQCPTime}
+				//*****************************************************
+				long startTime = System.currentTimeMillis();
 				checkArgumentsCount(3, arguments.size());
 
 				System.out.println("Querying cars price [xid=" + arguments.elementAt(1) + "]");
@@ -313,11 +326,16 @@ public abstract class Client
 				int id = toInt(arguments.elementAt(1));
 				String location = arguments.elementAt(2);
 
-				int price = m_resourceManager.queryCarsPrice(id, location);
+				long[] results = m_resourceManager.queryCarsPrice(id, location);
+				int price = (int) results[0];
 				System.out.println("Price of cars at this location: " + price);
-				//TODO: implement timer
+				return new long[] {results[0],results[1],results[2],System.currentTimeMillis()-startTime};
 			}
 			case QueryRoomsPrice: {
+				//*****************************************************
+				//Returns {price,RMQRPTime,MDWQRPTime,ClientQRPTime}
+				//*****************************************************
+				long startTime = System.currentTimeMillis();
 				checkArgumentsCount(3, arguments.size());
 
 				System.out.println("Querying rooms price [xid=" + arguments.elementAt(1) + "]");
@@ -326,9 +344,10 @@ public abstract class Client
 				int id = toInt(arguments.elementAt(1));
 				String location = arguments.elementAt(2);
 
-				int price = m_resourceManager.queryRoomsPrice(id, location);
+				long[] results = m_resourceManager.queryRoomsPrice(id, location);
+				int price = (int) results[0];
 				System.out.println("Price of rooms at this location: " + price);
-				return null;
+				return new long[] {results[0],results[1],results[2],System.currentTimeMillis()-startTime};
 			}
 			case ReserveFlight: {
 				checkArgumentsCount(4, arguments.size());
@@ -349,6 +368,10 @@ public abstract class Client
 				return null;
 			}
 			case ReserveCar: {
+				//*****************************************************
+				//Returns {(0L|1L),RMRCTime,MDWRCTime,ClientRCTime}, 0L=false 1L=true
+				//*****************************************************
+				long startTime = System.currentTimeMillis();
 				checkArgumentsCount(4, arguments.size());
 
 				System.out.println("Reserving a car at a location [xid=" + arguments.elementAt(1) + "]");
@@ -359,12 +382,13 @@ public abstract class Client
 				int customerID = toInt(arguments.elementAt(2));
 				String location = arguments.elementAt(3);
 
-				if (m_resourceManager.reserveCar(id, customerID, location)) {
+				long[] results = m_resourceManager.reserveCar(id, customerID, location);
+				if ((int) results[0] == 1) {
 					System.out.println("Car Reserved");
 				} else {
 					System.out.println("Car could not be reserved");
 				}
-				//TODO: implement timer
+				return new long[] {results[0],results[1],results[2],System.currentTimeMillis()-startTime};
 			}
 			case ReserveRoom: {
 				checkArgumentsCount(4, arguments.size());
@@ -418,29 +442,35 @@ public abstract class Client
 				}
 				return null;
 			}
-			case Start: {//returns {xid, response time}
+			case Start: {
+				//*****************************************************
+				//Returns {xid,MDWStTime, ClientCmTime}
+				//*****************************************************
 				long startTime = System.currentTimeMillis();
 				checkArgumentsCount(1, arguments.size());
 				System.out.println("Starting transaction - awaiting transaction xid");
-				int xid = m_resourceManager.start();
+				long[] results = m_resourceManager.start();//{xid, MDWStTime}
+				int xid = (int) results[0];
 				System.out.println("Transaction started with xid: " + xid);
-				//TODO: implement timer
-				return new long[] {xid, System.currentTimeMillis()-startTime};
+				return new long[] {results[0], results[1], System.currentTimeMillis()-startTime};
 			}
 			case Commit: {
+				//*****************************************************
+				//Returns {xid,RMCmTime, MDWCmTime, ClientCmTime}
+				//*****************************************************
 				long startTime = System.currentTimeMillis();
 				checkArgumentsCount(2, arguments.size());
 				int xid = toInt(arguments.elementAt(1));
 				System.out.println("Committing transaction xid: " + xid);
-				boolean commit = m_resourceManager.commit(xid);
+				long[] results = m_resourceManager.commit(xid); //{(0|1), ResourceManagerCommitTime, MiddleWareCommitTime}, 0=false 1=true
+				boolean commit = (int) results[0] == 1;
 				if (commit) {
 					System.out.println(xid + " committed successfully");
 				}
 				else {
 					System.out.println(xid + " failed to commit");
 				}
-
-				//TODO: implement timer
+				return new long[] {results[0],results[1],results[2], System.currentTimeMillis()-startTime};
 			}
 			case Abort: {
 				checkArgumentsCount(2, arguments.size());

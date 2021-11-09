@@ -371,6 +371,7 @@ public class ResourceManager implements IRemoteResourceManager
 	}
 
 	// Adds car reservation to this customer
+	//Returns {(0L|1L),RMRCTime}, 0L=false 1L=true
 	public long[] reserveCar(int xid, int customerID, String location) throws RemoteException, InvalidTransactionException {
 		long startTime = System.currentTimeMillis();
 		return new long[] {reserveItem(xid, customerID, Car.getKey(location), location)?1:0, System.currentTimeMillis()-startTime};
@@ -395,12 +396,17 @@ public class ResourceManager implements IRemoteResourceManager
 //	@Override
 //	public void abortTransaction(int transactionID) throws RemoteException {}
 //
-	public int start() throws RemoteException {
+
+	// returns {0L,RMStTime} 0L=false
+	public long[] start() throws RemoteException {
+		long startTime = System.currentTimeMillis();
 		Trace.error("Method not valid for this environment !");
-		return 0;
+		return new long[] {0L, System.currentTimeMillis()-startTime};
 	}
 
-	public boolean commit(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
+	// returns {1L,RMCmTime} 1L=true
+	public long[] commit(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
+		long startTime = System.currentTimeMillis();
 		System.out.println("RESOURCE MANAGER: --> " + m_name);
 
 		if(!localTransactionManager.isOngoingTransaction(xid)){
@@ -423,7 +429,7 @@ public class ResourceManager implements IRemoteResourceManager
 		t.setCommitted(true);
 		localTransactionManager.addToDeadTransactions(t);
 
-		return true;
+		return new long[] {1L, System.currentTimeMillis()-startTime};
 	}
 
 	public boolean shutdown() throws RemoteException {
