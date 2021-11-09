@@ -83,7 +83,9 @@ public class MiddlewareResourceManager implements IResourceManager
 
 	// IMPLEMENTED
 	// ***********
-	public boolean addCars(int xid, String location, int count, int price) throws RemoteException, InvalidTransactionException, TransactionAbortedException {
+	// returns {(0|1),RMACTime,MDWACTime}
+	public long[] addCars(int xid, String location, int count, int price) throws RemoteException, InvalidTransactionException, TransactionAbortedException {
+		long startTime = System.currentTimeMillis();
 		p.printIntro(xid, "addCars");
 
 		p.printValidation(xid);
@@ -94,13 +96,13 @@ public class MiddlewareResourceManager implements IResourceManager
 		addResourceManager(xid, ResourceManagerEnum.Car);
 
 		p.printForwarding(xid, ResourceManagerEnum.Car);
-        if (carResourceManager.addCars(xid, location, count, price)) {
+		long[] results = carResourceManager.addCars(xid, location, count, price);//{(0|1),RMACTime}
+        if ((int) results[0] == 1) {
             Trace.info("Car server completed request successfully!");
-            return true;
 		} else {
             Trace.info("Car server failed to complete request.");
-            return false;
         }
+		return new long[] {results[0],results[1],System.currentTimeMillis()-startTime};
 	}
 
 	// IMPLEMENTED
@@ -485,9 +487,7 @@ public class MiddlewareResourceManager implements IResourceManager
 
 	// IMPLEMENTED
 	// ***********
-	// returns {(0L|1L), RMReserveCarTime, MDWReserveCarTime}, 0L=false 1L=true
-	public long[] reserveCar(int xid, int customerID, String location) throws RemoteException, InvalidTransactionException, TransactionAbortedException {
-		long startTime = System.currentTimeMillis();
+	public boolean reserveCar(int xid, int customerID, String location) throws RemoteException, InvalidTransactionException, TransactionAbortedException {
 		p.printIntro(xid, "reserveCar");
 
 		p.printValidation(xid);
@@ -499,13 +499,14 @@ public class MiddlewareResourceManager implements IResourceManager
 		addResourceManager(xid, ResourceManagerEnum.Customer);
 
 		p.printForwarding(xid, ResourceManagerEnum.Car);
-		long[] results = carResourceManager.reserveCar(xid, customerID, location);//resourceManager.reserveCar returns {(0|1),time}
-		if((int) results[0] == 1){
+
+		if(carResourceManager.reserveCar(xid, customerID, location)){
 			Trace.info("Car server completed request successfully!");
+			return true;
 		} else{
 			Trace.info("Car server failed to complete request.");
+			return false;
 		}
-		return new long[] {results[0],results[1], System.currentTimeMillis()-startTime};
 	}
 
 	// IMPLEMENTED
@@ -545,7 +546,7 @@ public class MiddlewareResourceManager implements IResourceManager
 
 		if(car){
 			expectedFailureCount++;
-			if(!((int) carResourceManager.reserveCar(xid, customerId, location)[0] == 1)) {
+			if(!carResourceManager.reserveCar(xid, customerId, location)) {
 				failureCount++;
 			}
 		}
