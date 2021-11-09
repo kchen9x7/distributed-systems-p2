@@ -17,7 +17,7 @@ public class RMITestClient extends Client implements Runnable
 	public static int num_clients = 1;
 	public static double throughput = 1.0; //load of x transactions / second
 	public static long start_time = 0; //in millisecond at default
-	public long[][] results = new long[100][3]; //Most commands return 3 part of data of time for each command,
+	public long[][] results = new long[100][4]; //Most commands return 3 part of data of time for each command including: Middleware, RM, DB or communication
 	private static int runMode = 1; //1 or 2, 1 = oneRM, 2 = threeRMs
 	//We analyze the last 100 transaction out of 200 transactions,
 	// and we record the times of client side response time from start to end, middleware, and response time.
@@ -53,7 +53,7 @@ public class RMITestClient extends Client implements Runnable
 
 				if(this.runMode == 1){
 					responseTime_list = oneRM();
-				}else{ //runeMode == 2, many resourceManagers
+				}else{ //runMode == 2, many resourceManagers
 					responseTime_list = threeRMs();
 				}
 
@@ -75,9 +75,21 @@ public class RMITestClient extends Client implements Runnable
 		long[] response_times = new long[3];
 		long startTime = System.currentTimeMillis();
 
-		long[] rm = m_resourceManager.start(); //rm[1] = RM start time
-
-		long[] comm1 = m_resourceManager.addCars();
+//		long[] rm = m_resourceManager.start(); //rm[1] = RM start time
+//
+//		long[] comm1 = m_resourceManager.addCars();
+//		long[] comm2 = m_resourceManager.queryCars();
+//		long[] comm3 = m_resourceManager.queryCarsPrice();
+//
+//		long[] comm4 = m_resourceManager.addCars();
+//		long[] comm5 = m_resourceManager.queryCars();
+//		long[] comm6 = m_resourceManager.queryCarsPrice();
+//
+//		long[] comm7 = m_resourceManager.addCars();
+//		long[] comm8 = m_resourceManager.queryCars();
+//		long[] comm9 = m_resourceManager.queryCarsPrice();
+//
+//		long[] commit = m_resourceManager.commit();
 
 		long totalResponseTimes = System.currentTimeMillis() - startTime;
 		return response_times;
