@@ -1,12 +1,13 @@
 package TestClient;
 
-import Client.Client;
+import Client.*;
 import Server.Interface.IResourceManager;
 
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.util.Vector;
 
 public class RMITestClient extends Client implements Runnable
 {
@@ -15,9 +16,9 @@ public class RMITestClient extends Client implements Runnable
 	private static String s_serverName = "Middleware";
 
 	public static int num_clients = 1;
-	public static double throughput = 1.0; //load of x transactions / second
+	public static double throughput = 1.0; //load of x transactions / second, 0 if
 	public static long start_time = 0; //in millisecond at default
-	public long[][] results = new long[100][4]; //Most commands return 3 part of data of time for each command including: Middleware, RM, DB or communication
+	public long[][] results = new long[100][6]; //Most commands return 6 part of data of time for each command for analyzing
 	private static int runMode = 1; //1 or 2, 1 = oneRM, 2 = threeRMs
 	//We analyze the last 100 transaction out of 200 transactions,
 	// and we record the times of client side response time from start to end, middleware, and response time.
@@ -49,21 +50,21 @@ public class RMITestClient extends Client implements Runnable
 
 			try{
 				long[] responseTime_list;
-				long response_time = 0; //TODO: initialize the parameter with the actual response time, should be one of the values in responseTime_list[]
-
+				long total_response_time = 0; //for each transaction
 				if(this.runMode == 1){
 					responseTime_list = oneRM();
 				}else{ //runMode == 2, many resourceManagers
 					responseTime_list = threeRMs();
 				}
+				total_response_time = responseTime_list[0];
 
 				if(i >= getCurrThreadID()*200 + 100){ //Only analyze the results of the last 100 transactions
 					results[i - (getCurrThreadID()*200 + 100)] = responseTime_list;
 				}
-				if(varied_SubmitTime - response_time < 0){
+				if(varied_SubmitTime - total_response_time < 0 || throughput == 0){ //for only one type of RM, no sleep needed since no concurrent transaction
 					continue;
 				}
-				Thread.sleep((int) (varied_SubmitTime - response_time));
+				Thread.sleep((int) (varied_SubmitTime - total_response_time));
 			}catch(Exception e){
 				System.out.println("Exception while running the test analysis: " + e.getLocalizedMessage());
 			}
@@ -71,28 +72,79 @@ public class RMITestClient extends Client implements Runnable
 
 	}
 	//TODO: finish these helper methods
+	//Returns:{TotalResponseTime, ClientTime, DBTime, MDWTime, RMTime, CommunicationTime}
 	private long[] oneRM() throws Exception{
-		long[] response_times = new long[3];
 		long startTime = System.currentTimeMillis();
+		RMITestClient c = this;
 
-//		long[] rm = m_resourceManager.start(); //rm[1] = RM start time
-//
-//		long[] comm1 = m_resourceManager.addCars();
-//		long[] comm2 = m_resourceManager.queryCars();
-//		long[] comm3 = m_resourceManager.queryCarsPrice();
-//
-//		long[] comm4 = m_resourceManager.addCars();
-//		long[] comm5 = m_resourceManager.queryCars();
-//		long[] comm6 = m_resourceManager.queryCarsPrice();
-//
-//		long[] comm7 = m_resourceManager.addCars();
-//		long[] comm8 = m_resourceManager.queryCars();
-//		long[] comm9 = m_resourceManager.queryCarsPrice();
-//
-//		long[] commit = m_resourceManager.commit();
+		long[] startMid = c.execute(Command.Start, null);
+		int xid = (int) startMid[0]; //transaction id
 
-		long totalResponseTimes = System.currentTimeMillis() - startTime;
-		return response_times;
+		Vector<String> add1 = new Vector<String>(4);
+		add1.add(Integer.toString(xid));
+		add1.add("Montreal");
+		add1.add(Integer.toString(50));
+		add1.add(Integer.toString(100));
+
+		Vector<String> qc1 = new Vector<String>(2);
+		qc1.add(Integer.toString(xid));
+		qc1.add("Montreal");
+
+		Vector<String> qcp1 = new Vector<String>(2);
+		qcp1.add(Integer.toString(xid));
+		qcp1.add("Montreal");
+
+		Vector<String> add2 = new Vector<String>(4);
+		add2.add(Integer.toString(xid));
+		add2.add("Toronto");
+		add2.add(Integer.toString(50));
+		add2.add(Integer.toString(200));
+
+		Vector<String> qc2 = new Vector<String>(2);
+		qc2.add(Integer.toString(xid));
+		qc2.add("Toronto");
+
+		Vector<String> qcp2 = new Vector<String>(2);
+		qcp2.add(Integer.toString(xid));
+		qcp2.add("Toronto");
+
+		Vector<String> add3 = new Vector<String>(4);
+		add3.add(Integer.toString(xid));
+		add3.add("Vancouver");
+		add3.add(Integer.toString(50));
+		add3.add(Integer.toString(300));
+
+		Vector<String> qc3 = new Vector<String>(2);
+		qc3.add(Integer.toString(xid));
+		qc3.add("Vancouver");
+
+		Vector<String> qcp3 = new Vector<String>(2);
+		qcp3.add(Integer.toString(xid));
+		qcp3.add("Vancouver");
+
+		long[] comm1 = c.execute(Command.AddCars, add1);
+		long[] comm2 = c.execute(Command.QueryCars, qc1);
+		long[] comm3 = c.execute(Command.QueryCarsPrice, qcp1);
+
+		long[] comm4 = c.execute(Command.AddCars, add2);
+		long[] comm5 = c.execute(Command.QueryCars, qc2);
+		long[] comm6 = c.execute(Command.QueryCarsPrice, qcp2);
+
+		long[] comm7 = c.execute(Command.AddCars, add3);
+		long[] comm8 = c.execute(Command.QueryCars, qc3);
+		long[] comm9 = c.execute(Command.QueryCarsPrice, qcp3);
+
+		long[] commit = c.execute(Command.Commit, null);
+
+		long total_responseTime = System.currentTimeMillis() - startTime; //transaction time
+		long clientTime = startMid[6] + comm1[6] + comm2[6] + comm3[6] + comm4[6] + comm5[6] + comm6[6] + comm7[6] + comm8[6] + comm9[6] + commit[6];
+		long DBTime = startMid[1] + comm1[1] + comm2[1] + comm3[1] + comm4[1] + comm5[1] + comm6[1] + comm7[1] + comm8[1] + comm9[1] + commit[1];
+		long MDWTime = startMid[4] + comm1[4] + comm2[4] + comm3[4] + comm4[4] + comm5[4] + comm6[4] + comm7[4] + comm8[4] + comm9[4] + commit[4];
+		long RMTime = startMid[2] + comm1[2] + comm2[2] + comm3[2] + comm4[2] + comm5[2] + comm6[2] + comm7[2] + comm8[2] + comm9[2] + commit[2];
+		long communicateTime = startMid[5] + comm1[5] + comm2[5] + comm3[5] + comm4[5] + comm5[5] + comm6[5] + comm7[5] + comm8[5] + comm9[5] + commit[5]
+				- MDWTime - RMTime - DBTime;
+
+		return new long[] {total_responseTime, clientTime, DBTime, MDWTime, RMTime, communicateTime};
 	}
 
 	private long[] threeRMs() throws Exception{
@@ -145,14 +197,15 @@ public class RMITestClient extends Client implements Runnable
 				clients[i].connectServer();
 
 				client_threads[i] = new Thread(clients[i]);
-				client_threads[i].start();
+				//TODO: Tentative solution, subject to change if wrong( changed from client_threads[i].start() to client_threads[i].run() )
+				client_threads[i].run(); //In each wrong, calls oneRM() or threeRMs(), which contains calls to execute()
 			}
 
 			for (int i = 0; i < num_clients; i++) {
 				client_threads[i].join();
 			}
-			System.out.println("DATA\n\n");
-			//TODO
+			System.out.println("ANALYZING DATA: \n\n");
+			//TODO: below not sure if completely correct, subject to return
 //			for (int i = 0; i < num_clients; i++) {
 //				for (int j = 0; j < clients[i].results.length; j++) {
 //					for (int k = 0; k < clients[i].results[j].length; k++) {
