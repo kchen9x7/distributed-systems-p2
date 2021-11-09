@@ -42,7 +42,7 @@ public class ResourceManager implements IRemoteResourceManager
 
 		RMHashMap t_data = t.getData();
 		boolean isOngoingTransactionContainingData = t_data.containsKey(key);
-
+		DBTimes.put(xid,0L);
 		if(isOngoingTransactionContainingData){
 			return t.readData(key);
 		} else{
@@ -170,7 +170,9 @@ public class ResourceManager implements IRemoteResourceManager
 
 	// Create a new flight, or add seats to existing flight
 	// NOTE: if flightPrice <= 0 and the flight already exists, it maintains its current price
-	public boolean addFlight(int xid, int flightNum, int flightSeats, int flightPrice) throws RemoteException, InvalidTransactionException {
+	// returns {1L,RMTime}
+	public long[] addFlight(int xid, int flightNum, int flightSeats, int flightPrice) throws RemoteException, InvalidTransactionException {
+		long startTime = System.currentTimeMillis();
 		Trace.info("RM::addFlight(" + xid + ", " + flightNum + ", " + flightSeats + ", $" + flightPrice + ") called");
 		Flight curObj = (Flight)readData(xid, Flight.getKey(flightNum));
 		if (curObj == null)
@@ -191,12 +193,12 @@ public class ResourceManager implements IRemoteResourceManager
 			writeData(xid, curObj.getKey(), curObj);
 			Trace.info("RM::addFlight(" + xid + ") modified existing flight " + flightNum + ", seats=" + curObj.getCount() + ", price=$" + flightPrice);
 		}
-		return true;
+		return new long[] {1L,System.currentTimeMillis()-startTime};
 	}
 
 	// Create a new car location or add cars to an existing location
 	// NOTE: if price <= 0 and the location already exists, it maintains its current price
-	// returns {1L,DBACTime,RMACTime}
+	// returns {1L,RMTime}
 	public long[] addCars(int xid, String location, int count, int price) throws RemoteException, InvalidTransactionException {
 		long startTime = System.currentTimeMillis();
 		Trace.info("RM::addCars(" + xid + ", " + location + ", " + count + ", $" + price + ") called");
@@ -226,7 +228,9 @@ public class ResourceManager implements IRemoteResourceManager
 
 	// Create a new room location or add rooms to an existing location
 	// NOTE: if price <= 0 and the room location already exists, it maintains its current price
-	public boolean addRooms(int xid, String location, int count, int price) throws RemoteException, InvalidTransactionException {
+	// returns {1L,RMTime}
+	public long[] addRooms(int xid, String location, int count, int price) throws RemoteException, InvalidTransactionException {
+		long startTime = System.currentTimeMillis();
 		Trace.info("RM::addRooms(" + xid + ", " + location + ", " + count + ", $" + price + ") called");
 		Room curObj = (Room)readData(xid, Room.getKey(location));
 		if (curObj == null)
@@ -245,7 +249,7 @@ public class ResourceManager implements IRemoteResourceManager
 			writeData(xid, curObj.getKey(), curObj);
 			Trace.info("RM::addRooms(" + xid + ") modified existing location " + location + ", count=" + curObj.getCount() + ", price=$" + price);
 		}
-		return true;
+		return new long[] {1L,System.currentTimeMillis()-startTime};
 	}
 
 	// Deletes flight
@@ -263,21 +267,24 @@ public class ResourceManager implements IRemoteResourceManager
 		return deleteItem(xid, Room.getKey(location));
 	}
 
-	// Returns the number of empty seats in this flight
-	public int queryFlight(int xid, int flightNum) throws RemoteException, InvalidTransactionException {
-		return queryNum(xid, Flight.getKey(flightNum));
+	// Returns {numFlights,DBTime,RMTime}
+	public long[] queryFlight(int xid, int flightNum) throws RemoteException, InvalidTransactionException {
+		long startTime = System.currentTimeMillis();
+		return new long[] {queryNum(xid, Flight.getKey(flightNum)), DBTimes.get(xid), System.currentTimeMillis()-startTime};
+
 	}
 
 
-	// Returns {numCars,DBQCTime,RMQCTime}
+	// Returns {numCars,DBTime,RMTime}
 	public long[] queryCars(int xid, String location) throws RemoteException, InvalidTransactionException {
 		long startTime = System.currentTimeMillis();
 		return new long[] {queryNum(xid, Car.getKey(location)), DBTimes.get(xid), System.currentTimeMillis()-startTime};
 	}
 
 	// Returns the amount of rooms available at a location
-	public int queryRooms(int xid, String location) throws RemoteException, InvalidTransactionException {
-		return queryNum(xid, Room.getKey(location));
+	public long[] queryRooms(int xid, String location) throws RemoteException, InvalidTransactionException {
+		long startTime = System.currentTimeMillis();
+		return new long[] {queryNum(xid, Room.getKey(location)), DBTimes.get(xid), System.currentTimeMillis()-startTime};
 	}
 
 	// Returns price of a seat in this flight
