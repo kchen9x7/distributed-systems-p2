@@ -84,6 +84,7 @@ public abstract class Client
 
 	public long[] execute(Command cmd, Vector<String> arguments)
 			throws RemoteException, NumberFormatException, InvalidTransactionException, TransactionAbortedException {
+		System.out.println("started executing " + cmd.toString());
 		long startTime = System.currentTimeMillis();
 		switch (cmd)
 		{
@@ -291,6 +292,7 @@ public abstract class Client
 				//****************************************************************************************
 				//Returns {numCars, DBTime, RMTime, TotalRMTime, MDWTime, TotalMDWTime, TotalClientTime}
 				//****************************************************************************************
+
 				checkArgumentsCount(3, arguments.size());
 
 				System.out.println("Querying cars location [xid=" + arguments.elementAt(1) + "]");
@@ -298,6 +300,8 @@ public abstract class Client
 				
 				int id = toInt(arguments.elementAt(1));
 				String location = arguments.elementAt(2);
+
+				System.out.println("Started Query Cars for transaction " + id);
 
 				long TotalMDWTime = System.currentTimeMillis();
 				long[] results = m_resourceManager.queryCars(id, location);
