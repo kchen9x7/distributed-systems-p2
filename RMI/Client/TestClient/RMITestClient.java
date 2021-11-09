@@ -1,5 +1,6 @@
 package TestClient;
 
+import Client.Client;
 import Server.Interface.IResourceManager;
 
 import java.rmi.NotBoundException;
@@ -7,7 +8,7 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
-public class RMITestClient extends TestClient implements Runnable
+public class RMITestClient extends Client implements Runnable
 {
 	private static String s_serverHost = "localhost";
 	private static int s_serverPort = 1099;
@@ -51,7 +52,7 @@ public class RMITestClient extends TestClient implements Runnable
 				long response_time = 0; //TODO: initialize the parameter with the actual response time.
 
 				if(this.runMode == 1){
-					
+
 				}
 
 				if(i >= getCurrThreadID()*200 + 100){ //Only analyze the results of the last 100 transactions
