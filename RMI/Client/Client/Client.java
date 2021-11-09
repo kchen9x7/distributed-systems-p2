@@ -13,7 +13,7 @@ import java.rmi.UnmarshalException;
 
 public abstract class Client
 {
-	IResourceManager m_resourceManager = null;
+	protected IResourceManager m_resourceManager = null;
 
 	public Client()
 	{
