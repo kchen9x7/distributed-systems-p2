@@ -47,10 +47,13 @@ public class ResourceManager implements IRemoteResourceManager
 			return t.readData(key);
 		} else{
 			synchronized (m_data) {
+				long DBStartTime = System.currentTimeMillis();
 				RMItem item = m_data.get(key);
 				if (item != null) {
+					DBTimes.put(xid,System.currentTimeMillis()-DBStartTime);
 					return (RMItem)item.clone();
 				} else{
+					DBTimes.put(xid,System.currentTimeMillis()-DBStartTime);
 					return null;
 				}
 			}
@@ -203,6 +206,7 @@ public class ResourceManager implements IRemoteResourceManager
 			// Car location doesn't exist yet, add it
 			Car newObj = new Car(location, count, price);
 
+
 			writeData(xid, newObj.getKey(), newObj);
 			Trace.info("RM::addCars(" + xid + ") created new location " + location + ", count=" + count + ", price=$" + price);
 		}
@@ -264,10 +268,11 @@ public class ResourceManager implements IRemoteResourceManager
 		return queryNum(xid, Flight.getKey(flightNum));
 	}
 
-	// Returns the number of cars available at a location
+
+	// Returns {numCars,DBQCTime,RMQCTime}
 	public long[] queryCars(int xid, String location) throws RemoteException, InvalidTransactionException {
 		long startTime = System.currentTimeMillis();
-		return new long[] {queryNum(xid, Car.getKey(location)), System.currentTimeMillis()-startTime};
+		return new long[] {queryNum(xid, Car.getKey(location)), DBTimes.get(xid), System.currentTimeMillis()-startTime};
 	}
 
 	// Returns the amount of rooms available at a location
@@ -278,19 +283,19 @@ public class ResourceManager implements IRemoteResourceManager
 	// Returns price of a seat in this flight
 	public long[] queryFlightPrice(int xid, int flightNum) throws RemoteException, InvalidTransactionException {
 		long startTime = System.currentTimeMillis();
-		return new long[] {queryPrice(xid, Flight.getKey(flightNum)), System.currentTimeMillis()-startTime};
+		return new long[] {queryPrice(xid, Flight.getKey(flightNum)), DBTimes.get(xid), System.currentTimeMillis()-startTime};
 	}
 
 	// Returns price of cars at this location
 	public long[] queryCarsPrice(int xid, String location) throws RemoteException, InvalidTransactionException {
 		long startTime = System.currentTimeMillis();
-		return new long[] {queryPrice(xid, Car.getKey(location)), System.currentTimeMillis()-startTime};
+		return new long[] {queryPrice(xid, Car.getKey(location)), DBTimes.get(xid), System.currentTimeMillis()-startTime};
 	}
 
 	// Returns room price at this location
 	public long[] queryRoomsPrice(int xid, String location) throws RemoteException, InvalidTransactionException {
 		long startTime = System.currentTimeMillis();
-		return new long[] {queryPrice(xid, Room.getKey(location)), System.currentTimeMillis()-startTime};
+		return new long[] {queryPrice(xid, Room.getKey(location)), DBTimes.get(xid), System.currentTimeMillis()-startTime};
 	}
 
 	public String queryCustomerInfo(int xid, int customerID) throws RemoteException, InvalidTransactionException {
@@ -418,6 +423,7 @@ public class ResourceManager implements IRemoteResourceManager
 		Transaction t = localTransactionManager.getOngoingTransaction(xid);
 		RMHashMap data = t.getData();
 
+		long DBStartTime = System.currentTimeMillis();
 		synchronized (m_data) {
 			Set<String> keyset = data.keySet();
 			for (String key : keyset) {
@@ -425,13 +431,14 @@ public class ResourceManager implements IRemoteResourceManager
 				m_data.put(key, data.get(key));
 			}
 		}
+		long DBTime = System.currentTimeMillis()-DBStartTime;
 
 		localTransactionManager.nullifyOngoingTransaction(xid);
 
 		t.setCommitted(true);
 		localTransactionManager.addToDeadTransactions(t);
 
-		return new long[] {1L, System.currentTimeMillis()-startTime};
+		return new long[] {1L, DBTime, System.currentTimeMillis()-startTime};
 	}
 
 	public boolean shutdown() throws RemoteException {

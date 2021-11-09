@@ -120,9 +120,9 @@ public abstract class Client
 				return null;
 			}
 			case AddCars: {
-				//*****************************************************
-				//Returns {(0|1),RMACTime,MDWACTime,ClientACTime},0=false 1=true
-				//*****************************************************
+				//****************************************************************************************
+				//Returns {(0|1), DBTime, RMTime,TotalRMTime, MDWTime, TotalMDWTime, ClientTime},0=false 1=true
+				//****************************************************************************************
 				checkArgumentsCount(5, arguments.size());
 
 				System.out.println("Adding new cars [xid=" + arguments.elementAt(1) + "]");
@@ -135,13 +135,15 @@ public abstract class Client
 				int numCars = toInt(arguments.elementAt(3));
 				int price = toInt(arguments.elementAt(4));
 
+				long TotalMDWTime = System.currentTimeMillis();
 				long[] results = m_resourceManager.addCars(id, location, numCars, price);
+				TotalMDWTime = System.currentTimeMillis()-TotalMDWTime;
 				if ((int) results[0] == 1) {
 					System.out.println("Cars added");
 				} else {
 					System.out.println("Cars could not be added");
 				}
-				return new long[] {results[0],results[1],results[2],System.currentTimeMillis()-startTime};
+				return new long[] {results[0], 0L, results[1], results[2], results[3], TotalMDWTime, System.currentTimeMillis()-startTime};
 			}
 			case AddRooms: {
 				checkArgumentsCount(5, arguments.size());
@@ -268,9 +270,9 @@ public abstract class Client
 				return null;
 			}
 			case QueryCars: {
-				//*****************************************************
-				//Returns {numCars,RMQCTime,MDWQCTime,ClientQCTime}
-				//*****************************************************
+				//****************************************************************************************
+				//Returns {numCars, DBTime, RMTime, TotalRMTime, MDWTime, TotalMDWTime, ClientTime}
+				//****************************************************************************************
 				checkArgumentsCount(3, arguments.size());
 
 				System.out.println("Querying cars location [xid=" + arguments.elementAt(1) + "]");
@@ -279,10 +281,12 @@ public abstract class Client
 				int id = toInt(arguments.elementAt(1));
 				String location = arguments.elementAt(2);
 
+				long TotalMDWTime = System.currentTimeMillis();
 				long[] results = m_resourceManager.queryCars(id, location);
+				TotalMDWTime = System.currentTimeMillis()-TotalMDWTime;
 				int numCars = (int) results[0];
 				System.out.println("Number of cars at this location: " + numCars);
-				return new long[] {results[0],results[1],results[2],System.currentTimeMillis()-startTime};
+				return new long[] {results[0], results[1], results[2], results[3], results[4], TotalMDWTime, System.currentTimeMillis()-startTime};
 			}
 			case QueryRooms: {
 				checkArgumentsCount(3, arguments.size());
@@ -311,9 +315,9 @@ public abstract class Client
 				return null;
 			}
 			case QueryFlightPrice: {
-				//*****************************************************
-				//Returns {price,RMQFPTime,MDWQFPTime,ClientQFPTime}
-				//*****************************************************
+				//*************************************************************************************************
+				//Returns {price, DBTime, RMTime, TotalRMTime, MDWTime, TotalMDWTime, ClientTime}
+				//*************************************************************************************************
 				checkArgumentsCount(3, arguments.size());
 				
 				System.out.println("Querying a flight price [xid=" + arguments.elementAt(1) + "]");
@@ -321,15 +325,17 @@ public abstract class Client
 
 				int id = toInt(arguments.elementAt(1));
 				int flightNum = toInt(arguments.elementAt(2));
+				long TotalMDWTime = System.currentTimeMillis();
 				long[] results = m_resourceManager.queryFlightPrice(id, flightNum);//{price,RMQFPTime,MDWQFPTime}
+				TotalMDWTime = System.currentTimeMillis()-TotalMDWTime;
 				int price = (int) results[0];
 				System.out.println("Price of a seat: " + price);
-				return new long[] {results[0],results[1],results[2],System.currentTimeMillis()-startTime};
+				return new long[] {results[0], results[1], results[2], results[3], results[4], TotalMDWTime, System.currentTimeMillis()-startTime};
 			}
 			case QueryCarsPrice: {
-				//*****************************************************
-				//Returns {price,RMQCPTime,MDWQCPTime,ClientQCPTime}
-				//*****************************************************
+				//*************************************************************************************************
+				//Returns {price, DBTime, RMTime, TotalRMTime, MDWTime, TotalMDWTime, ClientTime}
+				//*************************************************************************************************
 				checkArgumentsCount(3, arguments.size());
 
 				System.out.println("Querying cars price [xid=" + arguments.elementAt(1) + "]");
@@ -338,15 +344,17 @@ public abstract class Client
 				int id = toInt(arguments.elementAt(1));
 				String location = arguments.elementAt(2);
 
+				long TotalMDWTime = System.currentTimeMillis();
 				long[] results = m_resourceManager.queryCarsPrice(id, location);
+				TotalMDWTime = System.currentTimeMillis()-TotalMDWTime;
 				int price = (int) results[0];
 				System.out.println("Price of cars at this location: " + price);
-				return new long[] {results[0],results[1],results[2],System.currentTimeMillis()-startTime};
+				return new long[] {results[0], results[1], results[2], results[3], results[4], TotalMDWTime, System.currentTimeMillis()-startTime};
 			}
 			case QueryRoomsPrice: {
-				//*****************************************************
-				//Returns {price,RMQRPTime,MDWQRPTime,ClientQRPTime}
-				//*****************************************************
+				//***********************************************************************************
+				//Returns {price, DBTime, RMTime, TotalRMTime, MDWTime, TotalMDWTime, ClientTime}
+				//***********************************************************************************
 				checkArgumentsCount(3, arguments.size());
 
 				System.out.println("Querying rooms price [xid=" + arguments.elementAt(1) + "]");
@@ -355,10 +363,12 @@ public abstract class Client
 				int id = toInt(arguments.elementAt(1));
 				String location = arguments.elementAt(2);
 
+				long TotalMDWTime = System.currentTimeMillis();
 				long[] results = m_resourceManager.queryRoomsPrice(id, location);
+				TotalMDWTime = System.currentTimeMillis()-TotalMDWTime;
 				int price = (int) results[0];
 				System.out.println("Price of rooms at this location: " + price);
-				return new long[] {results[0],results[1],results[2],System.currentTimeMillis()-startTime};
+				return new long[] {results[0], results[1], results[2], results[3], results[4], TotalMDWTime, System.currentTimeMillis()-startTime};
 			}
 			case ReserveFlight: {
 				checkArgumentsCount(4, arguments.size());
@@ -450,24 +460,28 @@ public abstract class Client
 				return null;
 			}
 			case Start: {
-				//*****************************************************
-				//Returns {xid,MDWStTime, ClientStTime}
-				//*****************************************************
+				//***********************************************************************************
+				//Returns {xid, DBTime, RMTime, TotalRMTime, MDWTime, TotalMDWTime, ClientTime}
+				//***********************************************************************************
 				checkArgumentsCount(1, arguments.size());
 				System.out.println("Starting transaction - awaiting transaction xid");
+				long TotalMDWTime = System.currentTimeMillis();
 				long[] results = m_resourceManager.start();//{xid, MDWStTime}
+				TotalMDWTime = System.currentTimeMillis()-TotalMDWTime;
 				int xid = (int) results[0];
 				System.out.println("Transaction started with xid: " + xid);
-				return new long[] {results[0], results[1], System.currentTimeMillis()-startTime};
+				return new long[] {results[0], 0L, 0L, 0L, results[1], TotalMDWTime, System.currentTimeMillis()-startTime};
 			}
 			case Commit: {
-				//*****************************************************
-				//Returns {(0L|1L),RMCmTime, MDWCmTime, ClientCmTime}
-				//*****************************************************
+				//***********************************************************************************
+				//Returns {(0|1), DBTime, RMTime, TotalRMTime, MDWTime, TotalMDWTime, ClientTime}
+				//***********************************************************************************
 				checkArgumentsCount(2, arguments.size());
 				int xid = toInt(arguments.elementAt(1));
 				System.out.println("Committing transaction xid: " + xid);
-				long[] results = m_resourceManager.commit(xid); //{(0|1), ResourceManagerCommitTime, MiddleWareCommitTime}, 0=false 1=true
+				long TotalMDWTime = System.currentTimeMillis();
+				long[] results = m_resourceManager.commit(xid); //{(0|1), DBTime, RMTime, TotalRMTime, MDWTime}, 0=false 1=true
+				TotalMDWTime = System.currentTimeMillis()-TotalMDWTime;
 				boolean commit = (int) results[0] == 1;
 				if (commit) {
 					System.out.println(xid + " committed successfully");
@@ -475,7 +489,7 @@ public abstract class Client
 				else {
 					System.out.println(xid + " failed to commit");
 				}
-				return new long[] {results[0],results[1],results[2], System.currentTimeMillis()-startTime};
+				return new long[] {results[0], results[1], results[2], results[3], results[4], TotalMDWTime, System.currentTimeMillis()-startTime};
 			}
 			case Abort: {
 				checkArgumentsCount(2, arguments.size());
