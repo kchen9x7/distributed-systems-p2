@@ -121,7 +121,7 @@ public abstract class Client
 			}
 			case AddCars: {
 				//****************************************************************************************
-				//Returns {(0|1), DBTime, RMTime,TotalRMTime, MDWTime, TotalMDWTime, ClientTime},0=false 1=true
+				//Returns {(0|1), DBTime, RMTime, TotalRMTime, MDWTime, TotalMDWTime, TotalClientTime},0=false 1=true
 				//****************************************************************************************
 				checkArgumentsCount(5, arguments.size());
 
@@ -271,7 +271,7 @@ public abstract class Client
 			}
 			case QueryCars: {
 				//****************************************************************************************
-				//Returns {numCars, DBTime, RMTime, TotalRMTime, MDWTime, TotalMDWTime, ClientTime}
+				//Returns {numCars, DBTime, RMTime, TotalRMTime, MDWTime, TotalMDWTime, TotalClientTime}
 				//****************************************************************************************
 				checkArgumentsCount(3, arguments.size());
 
@@ -316,7 +316,7 @@ public abstract class Client
 			}
 			case QueryFlightPrice: {
 				//*************************************************************************************************
-				//Returns {price, DBTime, RMTime, TotalRMTime, MDWTime, TotalMDWTime, ClientTime}
+				//Returns {price, DBTime, RMTime, TotalRMTime, MDWTime, TotalMDWTime, TotalClientTime}
 				//*************************************************************************************************
 				checkArgumentsCount(3, arguments.size());
 				
@@ -334,7 +334,7 @@ public abstract class Client
 			}
 			case QueryCarsPrice: {
 				//*************************************************************************************************
-				//Returns {price, DBTime, RMTime, TotalRMTime, MDWTime, TotalMDWTime, ClientTime}
+				//Returns {price, DBTime, RMTime, TotalRMTime, MDWTime, TotalMDWTime, TotalClientTime}
 				//*************************************************************************************************
 				checkArgumentsCount(3, arguments.size());
 
@@ -353,7 +353,7 @@ public abstract class Client
 			}
 			case QueryRoomsPrice: {
 				//***********************************************************************************
-				//Returns {price, DBTime, RMTime, TotalRMTime, MDWTime, TotalMDWTime, ClientTime}
+				//Returns {price, DBTime, RMTime, TotalRMTime, MDWTime, TotalMDWTime, TotalClientTime}
 				//***********************************************************************************
 				checkArgumentsCount(3, arguments.size());
 
@@ -461,7 +461,7 @@ public abstract class Client
 			}
 			case Start: {
 				//***********************************************************************************
-				//Returns {xid, DBTime, RMTime, TotalRMTime, MDWTime, TotalMDWTime, ClientTime}
+				//Returns {xid, DBTime, RMTime, TotalRMTime, MDWTime, TotalMDWTime, TotalClientTime}
 				//***********************************************************************************
 				checkArgumentsCount(1, arguments.size());
 				System.out.println("Starting transaction - awaiting transaction xid");
@@ -474,7 +474,7 @@ public abstract class Client
 			}
 			case Commit: {
 				//***********************************************************************************
-				//Returns {(0|1), DBTime, RMTime, TotalRMTime, MDWTime, TotalMDWTime, ClientTime}
+				//Returns {(0|1), DBTime, RMTime, TotalRMTime, MDWTime, TotalMDWTime, TotalClientTime}
 				//***********************************************************************************
 				checkArgumentsCount(2, arguments.size());
 				int xid = toInt(arguments.elementAt(1));
