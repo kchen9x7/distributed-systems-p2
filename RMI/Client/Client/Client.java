@@ -49,11 +49,17 @@ public abstract class Client
 				arguments = parse(command);
 				Command cmd = Command.fromString((String)arguments.elementAt(0));
 				try {
-					execute(cmd, arguments);
+					long[] results = execute(cmd, arguments);
+					if(results!=null){
+						System.out.println(results.toString());
+					}
 				}
 				catch (ConnectException e) {
 					connectServer();
-					execute(cmd, arguments);
+					long[] results = execute(cmd, arguments);
+					if(results!=null){
+						System.out.println(results.toString());
+					}
 				}
 			}
 			catch (IllegalArgumentException|ServerException e) {
@@ -74,6 +80,7 @@ public abstract class Client
 
 	public long[] execute(Command cmd, Vector<String> arguments)
 			throws RemoteException, NumberFormatException, InvalidTransactionException, TransactionAbortedException {
+		long startTime = System.currentTimeMillis();
 		switch (cmd)
 		{
 			case Help:
@@ -256,7 +263,6 @@ public abstract class Client
 				//*****************************************************
 				//Returns {numCars,RMQCTime,MDWQCTime,ClientQCTime}
 				//*****************************************************
-				long startTime = System.currentTimeMillis();
 				checkArgumentsCount(3, arguments.size());
 
 				System.out.println("Querying cars location [xid=" + arguments.elementAt(1) + "]");
@@ -300,7 +306,6 @@ public abstract class Client
 				//*****************************************************
 				//Returns {price,RMQFPTime,MDWQFPTime,ClientQFPTime}
 				//*****************************************************
-				long startTime = System.currentTimeMillis();
 				checkArgumentsCount(3, arguments.size());
 				
 				System.out.println("Querying a flight price [xid=" + arguments.elementAt(1) + "]");
@@ -308,7 +313,7 @@ public abstract class Client
 
 				int id = toInt(arguments.elementAt(1));
 				int flightNum = toInt(arguments.elementAt(2));
-				long[] results = m_resourceManager.queryFlightPrice(id, flightNum);
+				long[] results = m_resourceManager.queryFlightPrice(id, flightNum);//{price,RMQFPTime,MDWQFPTime}
 				int price = (int) results[0];
 				System.out.println("Price of a seat: " + price);
 				return new long[] {results[0],results[1],results[2],System.currentTimeMillis()-startTime};
@@ -317,7 +322,6 @@ public abstract class Client
 				//*****************************************************
 				//Returns {price,RMQCPTime,MDWQCPTime,ClientQCPTime}
 				//*****************************************************
-				long startTime = System.currentTimeMillis();
 				checkArgumentsCount(3, arguments.size());
 
 				System.out.println("Querying cars price [xid=" + arguments.elementAt(1) + "]");
@@ -335,7 +339,6 @@ public abstract class Client
 				//*****************************************************
 				//Returns {price,RMQRPTime,MDWQRPTime,ClientQRPTime}
 				//*****************************************************
-				long startTime = System.currentTimeMillis();
 				checkArgumentsCount(3, arguments.size());
 
 				System.out.println("Querying rooms price [xid=" + arguments.elementAt(1) + "]");
@@ -371,7 +374,6 @@ public abstract class Client
 				//*****************************************************
 				//Returns {(0L|1L),RMRCTime,MDWRCTime,ClientRCTime}, 0L=false 1L=true
 				//*****************************************************
-				long startTime = System.currentTimeMillis();
 				checkArgumentsCount(4, arguments.size());
 
 				System.out.println("Reserving a car at a location [xid=" + arguments.elementAt(1) + "]");
@@ -444,9 +446,8 @@ public abstract class Client
 			}
 			case Start: {
 				//*****************************************************
-				//Returns {xid,MDWStTime, ClientCmTime}
+				//Returns {xid,MDWStTime, ClientStTime}
 				//*****************************************************
-				long startTime = System.currentTimeMillis();
 				checkArgumentsCount(1, arguments.size());
 				System.out.println("Starting transaction - awaiting transaction xid");
 				long[] results = m_resourceManager.start();//{xid, MDWStTime}
@@ -456,9 +457,8 @@ public abstract class Client
 			}
 			case Commit: {
 				//*****************************************************
-				//Returns {xid,RMCmTime, MDWCmTime, ClientCmTime}
+				//Returns {(0L|1L),RMCmTime, MDWCmTime, ClientCmTime}
 				//*****************************************************
-				long startTime = System.currentTimeMillis();
 				checkArgumentsCount(2, arguments.size());
 				int xid = toInt(arguments.elementAt(1));
 				System.out.println("Committing transaction xid: " + xid);
