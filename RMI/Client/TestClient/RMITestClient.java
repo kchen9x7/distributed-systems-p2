@@ -230,15 +230,16 @@ public class RMITestClient extends Client implements Runnable
 		}
 		if (args.length > 2)
 		{
-			s_serverHost = args[2];
+			runMode = Integer.parseInt(args[2]);
 		}
 		if (args.length > 3)
 		{
-			s_serverName = args[3];
+
+			s_serverHost = args[3];
 		}
 		if (args.length > 4)
 		{
-			runMode = Integer.parseInt(args[4]);
+			s_serverName = args[4];
 		}
 		if (args.length > 5)
 		{

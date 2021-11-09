@@ -17,7 +17,7 @@ compile-client: ../Server/RMIInterface.jar
 	javac -cp ../Server/RMIInterface.jar Client/*.java
 
 compile-test-client: ../Server/RMIInterface.jar
-	javac -cp ../Server/RMIInterface.jar TestClient/*.java
+	javac -cp ../Server/RMIInterface.jar TestClient/*.java Client/*.java
 
 clean:
 	rm -f Client/*.class
