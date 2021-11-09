@@ -192,7 +192,9 @@ public class ResourceManager implements IRemoteResourceManager
 
 	// Create a new car location or add cars to an existing location
 	// NOTE: if price <= 0 and the location already exists, it maintains its current price
-	public boolean addCars(int xid, String location, int count, int price) throws RemoteException, InvalidTransactionException {
+	// returns {1L,RMACTime}
+	public long[] addCars(int xid, String location, int count, int price) throws RemoteException, InvalidTransactionException {
+		long startTime = System.currentTimeMillis();
 		Trace.info("RM::addCars(" + xid + ", " + location + ", " + count + ", $" + price + ") called");
 		Car curObj = (Car)readData(xid, Car.getKey(location));
 		if (curObj == null)
@@ -213,7 +215,7 @@ public class ResourceManager implements IRemoteResourceManager
 			writeData(xid, curObj.getKey(), curObj);
 			Trace.info("RM::addCars(" + xid + ") modified existing location " + location + ", count=" + curObj.getCount() + ", price=$" + price);
 		}
-		return true;
+		return new long[] {1L,System.currentTimeMillis()-startTime};
 	}
 
 	// Create a new room location or add rooms to an existing location
@@ -371,10 +373,8 @@ public class ResourceManager implements IRemoteResourceManager
 	}
 
 	// Adds car reservation to this customer
-	//Returns {(0L|1L),RMRCTime}, 0L=false 1L=true
-	public long[] reserveCar(int xid, int customerID, String location) throws RemoteException, InvalidTransactionException {
-		long startTime = System.currentTimeMillis();
-		return new long[] {reserveItem(xid, customerID, Car.getKey(location), location)?1:0, System.currentTimeMillis()-startTime};
+	public boolean reserveCar(int xid, int customerID, String location) throws RemoteException, InvalidTransactionException {
+		return reserveItem(xid, customerID, Car.getKey(location), location);
 	}
 
 	// Adds room reservation to this customer

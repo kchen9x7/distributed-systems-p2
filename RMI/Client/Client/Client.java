@@ -116,6 +116,9 @@ public abstract class Client
 				return null;
 			}
 			case AddCars: {
+				//*****************************************************
+				//Returns {(0|1),RMACTime,MDWACTime,ClientACTime},0=false 1=true
+				//*****************************************************
 				checkArgumentsCount(5, arguments.size());
 
 				System.out.println("Adding new cars [xid=" + arguments.elementAt(1) + "]");
@@ -128,12 +131,13 @@ public abstract class Client
 				int numCars = toInt(arguments.elementAt(3));
 				int price = toInt(arguments.elementAt(4));
 
-				if (m_resourceManager.addCars(id, location, numCars, price)) {
+				long[] results = m_resourceManager.addCars(id, location, numCars, price);
+				if ((int) results[0] == 1) {
 					System.out.println("Cars added");
 				} else {
 					System.out.println("Cars could not be added");
 				}
-				return null;
+				return new long[] {results[0],results[1],results[2],System.currentTimeMillis()-startTime};
 			}
 			case AddRooms: {
 				checkArgumentsCount(5, arguments.size());
@@ -371,9 +375,7 @@ public abstract class Client
 				return null;
 			}
 			case ReserveCar: {
-				//*****************************************************
-				//Returns {(0L|1L),RMRCTime,MDWRCTime,ClientRCTime}, 0L=false 1L=true
-				//*****************************************************
+
 				checkArgumentsCount(4, arguments.size());
 
 				System.out.println("Reserving a car at a location [xid=" + arguments.elementAt(1) + "]");
@@ -384,13 +386,12 @@ public abstract class Client
 				int customerID = toInt(arguments.elementAt(2));
 				String location = arguments.elementAt(3);
 
-				long[] results = m_resourceManager.reserveCar(id, customerID, location);
-				if ((int) results[0] == 1) {
+				if (m_resourceManager.reserveCar(id, customerID, location)) {
 					System.out.println("Car Reserved");
 				} else {
 					System.out.println("Car could not be reserved");
 				}
-				return new long[] {results[0],results[1],results[2],System.currentTimeMillis()-startTime};
+				return null;
 			}
 			case ReserveRoom: {
 				checkArgumentsCount(4, arguments.size());

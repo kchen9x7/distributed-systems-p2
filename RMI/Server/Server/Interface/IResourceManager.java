@@ -47,7 +47,7 @@ public interface IResourceManager extends Remote
      *
      * @return Success
      */
-    public boolean addCars(int id, String location, int numCars, int price)
+    public long[] addCars(int id, String location, int numCars, int price)
             throws RemoteException, InvalidTransactionException, TransactionAbortedException;
    
     /**
@@ -185,7 +185,7 @@ public interface IResourceManager extends Remote
      *
      * @return Success
      */
-    public long[] reserveCar(int id, int customerID, String location)
+    public boolean reserveCar(int id, int customerID, String location)
             throws RemoteException, InvalidTransactionException, TransactionAbortedException;
 
     /**
