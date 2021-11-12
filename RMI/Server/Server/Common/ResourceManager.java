@@ -416,7 +416,6 @@ public class ResourceManager implements IRemoteResourceManager
 		localTransactionManager.nullifyOngoingTransaction(xid);
 
 		t.setCommitted(true);
-		localTransactionManager.addToDeadTransactions(t);
 
 		return true;
 	}
@@ -438,7 +437,6 @@ public class ResourceManager implements IRemoteResourceManager
 		localTransactionManager.nullifyOngoingTransaction(xid);
 
 		t.setCommitted(false);
-		localTransactionManager.addToDeadTransactions(t);
 	}
 
 	public void addTransaction(int xid) throws RemoteException {

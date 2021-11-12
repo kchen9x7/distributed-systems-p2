@@ -28,7 +28,7 @@ public class MiddlewareResourceManager implements IResourceManager
 	private IRemoteResourceManager roomResourceManager = null;
 
 	// --- transactions ---
-	private int TTL = 1000000; //time to live
+	private int TTL = 60000; //time to live
 	private TransactionManager transactionManager;
 	private LockManager lockManager;
 
@@ -521,19 +521,32 @@ public class MiddlewareResourceManager implements IResourceManager
 		}
 	}
 
+	// IMPLEMENTED
+	// ***********
 	public boolean bundle(int xid, int customerId, Vector<String> flightNumbers, String location, boolean car, boolean room) throws RemoteException, InvalidTransactionException, TransactionAbortedException {
 		int failureCount = 0;
 		int expectedFailureCount = 0;
 
+		p.printValidation(xid);
+		validateTransaction(xid);
+
+		p.printLockRequest(xid, LockType.LOCK_WRITE);
+		requestLock(xid, LockType.LOCK_WRITE, Customer.getKey(customerId));
+		addResourceManager(xid, ResourceManagerEnum.Customer);
+
 		for(String flightNumber : flightNumbers){
 			expectedFailureCount++;
 			int flightNum = Integer.parseInt(flightNumber);
+
+			requestLock(xid, LockType.LOCK_WRITE, Flight.getKey(flightNum));
+
 			if(!flightResourceManager.reserveFlight(xid, customerId, flightNum)){
 				failureCount++;
 			}
 		}
 
 		if(car){
+			requestLock(xid, LockType.LOCK_WRITE, Car.getKey(location));
 			expectedFailureCount++;
 			if(!carResourceManager.reserveCar(xid, customerId, location)) {
 				failureCount++;
@@ -541,6 +554,7 @@ public class MiddlewareResourceManager implements IResourceManager
 		}
 
 		if(room){
+			requestLock(xid, LockType.LOCK_WRITE, Room.getKey(location));
 			expectedFailureCount++;
 			if(!roomResourceManager.reserveRoom(xid, customerId, location)){
 				failureCount++;
@@ -601,7 +615,6 @@ public class MiddlewareResourceManager implements IResourceManager
 		transactionManager.nullifyOngoingTransaction(xid);
 
 		t.setCommitted(false);
-		transactionManager.addToDeadTransactions(t);
 
 		lockManager.UnlockAll(xid);
 	}
@@ -693,7 +706,6 @@ public class MiddlewareResourceManager implements IResourceManager
 
 		transactionManager.nullifyOngoingTransaction(xid);
 		t.setCommitted(true);
-		transactionManager.addToDeadTransactions(t);
 		lockManager.UnlockAll(xid);
 
 		return true;

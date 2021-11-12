@@ -14,13 +14,11 @@ public class TransactionManager implements Runnable, Serializable {
     private int xidCount = 0;
     private int TTL;
     private HashMap<Integer, Transaction> ongoingTransactions;
-    private HashMap<Integer, Transaction> deadTransactions;
 
     private MiddlewareResourceManager middleware;
 
     public TransactionManager(){
         this.ongoingTransactions = new HashMap<>();
-        this.deadTransactions = new HashMap<>();
     }
 
     public TransactionManager(MiddlewareResourceManager middleware, int TTL){
@@ -44,12 +42,6 @@ public class TransactionManager implements Runnable, Serializable {
         }
     }
 
-    public void addToDeadTransactions(Transaction t){
-        synchronized (deadTransactions){
-            this.deadTransactions.put(t.getTransactionId(), t);
-        }
-    }
-
     public HashMap<Integer, Transaction> getOngoingTransactions(){
         return this.ongoingTransactions;
     }
@@ -60,10 +52,6 @@ public class TransactionManager implements Runnable, Serializable {
 
     public void nullifyOngoingTransaction(int xid){
         this.ongoingTransactions.put(xid, null);
-    }
-
-    public HashMap<Integer, Transaction> getDeadTransactions(){
-        return this.deadTransactions;
     }
 
     public boolean resetLatestInteraction(int xid){
